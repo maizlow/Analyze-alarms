@@ -45,7 +45,7 @@ namespace Analyze_alarms
         {
             this.DialogResult = DialogResult.OK;
 
-            //Save settings.
+            //Save settings. Write to XML is done in MainForm.cs
             MainForm.logSettings = localListOfSettings;
 
             this.Close();

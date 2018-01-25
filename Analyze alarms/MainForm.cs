@@ -16,6 +16,7 @@ namespace Analyze_alarms
 {
     public partial class MainForm : Form
     {
+        
         List<string> openedFiles = new List<string>();
         const int MRUnumber = 6;
         System.Collections.Generic.Queue<string> MRUlist = new Queue<string>();
@@ -54,40 +55,43 @@ namespace Analyze_alarms
                     tab.Text = Path.GetFileName(fileTabText);
                     fileTabControl.TabPages.Add(tab);
 
-                    //Add TabControl with tabs: Data, Summary, Diagram
-                    tab.Controls.Add(new TabControl());
-                    TabControl tabCntrl = (TabControl)tab.Controls[0];
-                    tabCntrl.Dock = DockStyle.Fill;
-                    tabCntrl.TabPages.Add(new TabPage());
-                    tabCntrl.TabPages.Add(new TabPage());
-                    tabCntrl.TabPages.Add(new TabPage());
+                    fileTabControl.TabPages[0].Controls.Add(CreateNewLog(GetData(x)));
 
-                    TabPage tp_data = (TabPage)tabCntrl.TabPages[0];
-                    tp_data.Text = "Data";
-                    DataGridView dgv = new DataGridView();
-                    dgv.ReadOnly = true;
-                    dgv.Dock = DockStyle.Fill;
-                    dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-                    DataTable dt = GetData(x);
-                    //Clear columns that have no valuable information
-                    dt.Columns.RemoveAt(15);
-                    dt.Columns.RemoveAt(12);
-                    dt.Columns.RemoveAt(11);
-                    dt.Columns.RemoveAt(10);
-                    dt.Columns.RemoveAt(9);
-                    dt.Columns.RemoveAt(8);
-                    dt.Columns.RemoveAt(7);
-                    dt.Columns.RemoveAt(6);
-                    dt.Columns.RemoveAt(5);
-                    dt.Columns.RemoveAt(1);
-                    dgv.DataSource = dt;
-                    tp_data.Controls.Add(dgv);
+                    ////Add TabControl with tabs: Data, Summary, Diagram
+                    //tab.Controls.Add(new TabControl());
+                    //TabControl tabCntrl = (TabControl)tab.Controls[0];
+                    //tabCntrl.Dock = DockStyle.Fill;
+                    //tabCntrl.TabPages.Add(new TabPage());
+                    //tabCntrl.TabPages.Add(new TabPage());
+                    //tabCntrl.TabPages.Add(new TabPage());
 
-                    TabPage tp_summary = (TabPage)tabCntrl.TabPages[1];
-                    tp_summary.Text = "Summary";
+                    //var tp_data = (TabPage)tabCntrl.TabPages[0];
+                    //tp_data.Text = "Data";
+                    //DataGridView dgv = new DataGridView();
+                    //dgv.ReadOnly = true;
+                    //dgv.Height = tabCntrl.TabPages[0].Height - 30;
+                    //dgv.Dock = DockStyle.Bottom;
+                    //dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+                    //DataTable dt = GetData(x);
+                    ////Clear columns that have no valuable information
+                    //dt.Columns.RemoveAt(15);
+                    //dt.Columns.RemoveAt(12);
+                    //dt.Columns.RemoveAt(11);
+                    //dt.Columns.RemoveAt(10);
+                    //dt.Columns.RemoveAt(9);
+                    //dt.Columns.RemoveAt(8);
+                    //dt.Columns.RemoveAt(7);
+                    //dt.Columns.RemoveAt(6);
+                    //dt.Columns.RemoveAt(5);
+                    //dt.Columns.RemoveAt(1);
+                    //dgv.DataSource = dt;
+                    //tp_data.Controls.Add(dgv);
 
-                    TabPage tp_diagram = (TabPage)tabCntrl.TabPages[2];
-                    tp_diagram.Text = "Diagram";
+                    //TabPage tp_summary = (TabPage)tabCntrl.TabPages[1];
+                    //tp_summary.Text = "Summary";
+
+                    //TabPage tp_diagram = (TabPage)tabCntrl.TabPages[2];
+                    //tp_diagram.Text = "Diagram";
 
 
 
@@ -201,6 +205,8 @@ namespace Analyze_alarms
 
         static void CreateStandardSettingsXML()
         {
+            // TODO: Create a functioning example file
+
 
             //Creates pretty much this
             //<classes>
@@ -227,7 +233,7 @@ namespace Analyze_alarms
 
 
 
-            doc.Save(System.Environment.CurrentDirectory + "\\test.xml");
+            doc.Save(System.Environment.CurrentDirectory + logSettingsFileName);
             
         }
 
@@ -252,9 +258,42 @@ namespace Analyze_alarms
                 doc.Element("classes").Add(newElement);
             }
 
-            doc.Save(System.Environment.CurrentDirectory + "\\test.xml");
+            doc.Save(System.Environment.CurrentDirectory + logSettingsFileName);
 
 
+        }
+
+        private UC_NewLog CreateNewLog(DataTable data)
+        {
+            var uc = new UC_NewLog(data);
+            uc.FilterButtonClick += new EventHandler(UC_NewLog_Filter_Button_Click);
+            uc.Dock = DockStyle.Fill;
+            //uc.data = data;
+
+            return uc;
+        }
+
+        protected void UC_NewLog_Filter_Button_Click(object sender, EventArgs e)
+        {
+            string test = "";
+            var uc = (UC_NewLog)sender;
+            foreach (DataRow dr in uc.data.Rows)
+            {
+                test = dr[0].ToString();
+                break;
+            }
+            MessageBox.Show(test);
+            test = "HEJSAN";
+            foreach (DataRow dr1 in uc.data.Rows)
+            {
+                dr1[0] = test;
+                break;
+            }
+            DataRow dr2;
+            dr2 = uc.data.Rows[0];
+            test = dr2[0].ToString();
+            MessageBox.Show(test);
+            uc.UpdateDataGridView(uc.data);
         }
 
         #endregion
@@ -265,8 +304,8 @@ namespace Analyze_alarms
         #region Events
         private void Form1_Load(object sender, EventArgs e)
         {
+            
             LoadRecentList();
-            CreateStandardSettingsXML();
             if (!File.Exists(System.Environment.CurrentDirectory + logSettingsFileName)) CreateStandardSettingsXML();
             else
             {
@@ -291,6 +330,7 @@ namespace Analyze_alarms
                 catch(Exception ex)
                 { MessageBox.Show(ex.Message); }
             }
+
         }
         
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -361,12 +401,9 @@ namespace Analyze_alarms
 
         }
 
-        private void helptempToolStripMenuItem_Click(object sender, EventArgs e)
+        private void MainForm_SizeChanged(object sender, EventArgs e)
         {
-            HELP_LogSettings frm = new HELP_LogSettings();
-            frm.Show();
+
         }
-
-
     }
 }

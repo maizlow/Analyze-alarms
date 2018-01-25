@@ -16,7 +16,7 @@ namespace Analyze_alarms
         public bool isProdActiveLogBit { get; set; }
         public bool isShiftActiveLogBit { get; set; }
 
-        //Could add other settings such as Color and such
+        //TODO: Could add other settings such as Color and such
 
         /*
         Class types are as following:
