@@ -120,6 +120,8 @@
   <data name="label7.Text" xml:space="preserve">
     <value>A class that stops production but is usually caused by a warning.
 If an alarm with this class is found as the stop cause the program
-will try to find an underlying warning that really caused the stop.</value>
+will try to find an underlying warning that really caused the stop.
+
+An indirect class </value>
   </data>
 </root>

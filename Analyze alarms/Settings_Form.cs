@@ -35,7 +35,7 @@ namespace Analyze_alarms
 
         private void Settings_Form_Load(object sender, EventArgs e)
         {
-            localListOfSettings = Form1.logSettings;
+            localListOfSettings = MainForm.logSettings;
             InitListView();
             InitComboBoxes();
         }
@@ -46,6 +46,7 @@ namespace Analyze_alarms
             this.DialogResult = DialogResult.OK;
 
             //Save settings.
+            MainForm.logSettings = localListOfSettings;
 
             this.Close();
         }

@@ -14,7 +14,7 @@ using System.Xml.Linq;
 
 namespace Analyze_alarms
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
         List<string> openedFiles = new List<string>();
         const int MRUnumber = 6;
@@ -25,7 +25,7 @@ namespace Analyze_alarms
 
 
 
-        public Form1()
+        public MainForm()
         {
             InitializeComponent();
         }

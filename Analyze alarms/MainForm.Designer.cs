@@ -1,6 +1,6 @@
 ﻿namespace Analyze_alarms
 {
-    partial class Form1
+    partial class MainForm
     {
         /// <summary>
         /// Required designer variable.
@@ -208,7 +208,7 @@
             this.helptempToolStripMenuItem.Text = "Helptemp";
             this.helptempToolStripMenuItem.Click += new System.EventHandler(this.helptempToolStripMenuItem_Click);
             // 
-            // Form1
+            // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -216,7 +216,7 @@
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.menuStrip1);
             this.Controls.Add(this.fileTabControl);
-            this.Name = "Form1";
+            this.Name = "MainForm";
             this.Text = "ABECE Alarm analyzer";
             this.Load += new System.EventHandler(this.Form1_Load);
             this.menuStrip1.ResumeLayout(false);
