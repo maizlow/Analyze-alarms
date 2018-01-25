@@ -245,7 +245,7 @@ namespace Analyze_alarms
                 return;
             }
 
-            //Editing existingaa
+            //Editing existing
             if (isEditing)
             {
                 updatedSetting.classNr = int.Parse(tb_ClassNr.Text);
