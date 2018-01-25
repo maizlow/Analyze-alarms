@@ -16,14 +16,7 @@ namespace Analyze_alarms
         1 Logging               {req. messageNr}
         2 Direct
         3 Indirect              {req. messageNr, subClassMember}
-        4 Indirect subclass 1
-        5 Indirect subclass 2
-        6 Indirect subclass 3
-        7 Indirect subclass 4
-        8 Indirect subclass 5
-        9 Indirect subclass 6
-        10 Indirect subclass 7
-        11 Indirect subclass 8
+        4 Indirect subclass
         */
 
         private List<LogSettings> localListOfSettings; //My local list to pass on DialogResult = OK
@@ -401,14 +394,7 @@ namespace Analyze_alarms
             cb_ClassType.Items.Add("Logging");
             cb_ClassType.Items.Add("Direct stop");
             cb_ClassType.Items.Add("Indirect");
-            cb_ClassType.Items.Add("Indirect subclass 1");
-            cb_ClassType.Items.Add("Indirect subclass 2");
-            cb_ClassType.Items.Add("Indirect subclass 3");
-            cb_ClassType.Items.Add("Indirect subclass 4");
-            cb_ClassType.Items.Add("Indirect subclass 5");
-            cb_ClassType.Items.Add("Indirect subclass 6");
-            cb_ClassType.Items.Add("Indirect subclass 7");
-            cb_ClassType.Items.Add("Indirect subclass 8");
+            cb_ClassType.Items.Add("Indirect subclass");
 
             cb_SubClassMember.Items.Clear();
             foreach (LogSettings s in localListOfSettings)
