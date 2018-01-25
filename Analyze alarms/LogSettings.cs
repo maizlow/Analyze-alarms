@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Drawing;
 
 namespace Analyze_alarms
 {
@@ -14,6 +15,8 @@ namespace Analyze_alarms
         public int subClassMember { get; set; } //classNr of member class
         public bool isProdActiveLogBit { get; set; }
         public bool isShiftActiveLogBit { get; set; }
+
+        //Could add other settings such as Color and such
 
         /*
         Class types are as following:

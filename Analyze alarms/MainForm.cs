@@ -201,17 +201,59 @@ namespace Analyze_alarms
 
         static void CreateStandardSettingsXML()
         {
-            //string xml = @"<classes>
-            //                   <class className=""Test"" classNr=""1"" classType=""1"" messageNr=""0"" subClassMember=""0""/>
-            //                   <class className=""Test2"" classNr=""2"" classType=""2"" messageNr=""0"" subClassMember=""0""/> 
-            //                </classes>";
 
-            //XDocument doc = new XDocument(XElement.Parse(xml));
-            //doc.Save(System.Environment.CurrentDirectory + logSettingsFileName);
+            //Creates pretty much this
+            //<classes>
+            //    <class className=""Test"" classNr=""1"" classType=""1"" messageNr=""123"" subClassMember=""0"" prodActive=""0"" shiftActive=""1""/>
+            //    <class className=""Test"" classNr=""1"" classType=""1"" messageNr=""123"" subClassMember=""0"" prodActive=""0"" shiftActive=""1""/>
+            //</classes>";
+
+            XDocument doc = new XDocument(new XDeclaration("1.0", "utf-8", "true"),
+                            new XElement("classes",
+                                new XElement("class", new XAttribute("className", "Test"),
+                                                      new XAttribute("classNr", "1"),
+                                                      new XAttribute("classType", "1"),
+                                                      new XAttribute("messageNr", "123"),
+                                                      new XAttribute("subClassMember", "0"),
+                                                      new XAttribute("prodActive", "0"),
+                                                      new XAttribute("shiftActive", "1")),
+                                new XElement("class", new XAttribute("className", "Test"),
+                                                      new XAttribute("classNr", "1"),
+                                                      new XAttribute("classType", "1"),
+                                                      new XAttribute("messageNr", "123"),
+                                                      new XAttribute("subClassMember", "0"),
+                                                      new XAttribute("prodActive", "0"),
+                                                      new XAttribute("shiftActive", "1"))));
+
+
+
+            doc.Save(System.Environment.CurrentDirectory + "\\test.xml");
+            
         }
 
         static void UpdateSettingsXML()
         {
+
+            XDocument doc = new XDocument(new XDeclaration("1.0", "utf-8", "true"), new XElement("classes"));
+
+            foreach (LogSettings item in logSettings)
+            {
+                var newElement = new XElement("class",
+                                new XAttribute("className", item.className),
+                                new XAttribute("classNr", item.classNr),
+                                new XAttribute("classType", item.classType),
+                                new XAttribute("messageNr", item.messageNr),
+                                new XAttribute("subClassMember", item.subClassMember),
+                                new XAttribute("prodActive", item.isProdActiveLogBit),
+                                new XAttribute("shiftActive", item.isShiftActiveLogBit)
+                                );
+                
+                                
+                doc.Element("classes").Add(newElement);
+            }
+
+            doc.Save(System.Environment.CurrentDirectory + "\\test.xml");
+
 
         }
 
@@ -224,7 +266,7 @@ namespace Analyze_alarms
         private void Form1_Load(object sender, EventArgs e)
         {
             LoadRecentList();
-
+            CreateStandardSettingsXML();
             if (!File.Exists(System.Environment.CurrentDirectory + logSettingsFileName)) CreateStandardSettingsXML();
             else
             {
@@ -314,8 +356,7 @@ namespace Analyze_alarms
             dres = frm.ShowDialog();
             if (dres == DialogResult.OK)
             {
-                
-                //Parse logSettings back to xml and overwrite current xml
+                UpdateSettingsXML();
             }
 
         }
@@ -325,5 +366,7 @@ namespace Analyze_alarms
             HELP_LogSettings frm = new HELP_LogSettings();
             frm.Show();
         }
+
+
     }
 }

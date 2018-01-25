@@ -48,7 +48,6 @@
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.customizeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.logsettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.helptempToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -80,8 +79,7 @@
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
             this.logsToolStripMenuItem,
-            this.settingsToolStripMenuItem,
-            this.helptempToolStripMenuItem});
+            this.settingsToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(702, 24);
@@ -201,13 +199,6 @@
             this.logsettingsToolStripMenuItem.Text = "Logsettings";
             this.logsettingsToolStripMenuItem.Click += new System.EventHandler(this.logsettingsToolStripMenuItem_Click);
             // 
-            // helptempToolStripMenuItem
-            // 
-            this.helptempToolStripMenuItem.Name = "helptempToolStripMenuItem";
-            this.helptempToolStripMenuItem.Size = new System.Drawing.Size(72, 20);
-            this.helptempToolStripMenuItem.Text = "Helptemp";
-            this.helptempToolStripMenuItem.Click += new System.EventHandler(this.helptempToolStripMenuItem_Click);
-            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -248,7 +239,6 @@
         private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem customizeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem logsettingsToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem helptempToolStripMenuItem;
     }
 }
 
