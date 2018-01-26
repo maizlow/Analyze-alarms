@@ -11,12 +11,13 @@ using System.Windows.Forms;
 using System.Text.RegularExpressions;
 using System.Linq;
 using System.Xml.Linq;
+using System.Configuration;
 
 namespace Analyze_alarms
 {
     public partial class MainForm : Form
     {
-        
+        static List<DataTable> myDataTables = new List<DataTable>();
         List<string> openedFiles = new List<string>();
         const int MRUnumber = 6;
         System.Collections.Generic.Queue<string> MRUlist = new Queue<string>();
@@ -24,7 +25,7 @@ namespace Analyze_alarms
 
         public static List<LogSettings> logSettings;
 
-
+        
 
         public MainForm()
         {
@@ -36,6 +37,8 @@ namespace Analyze_alarms
         /// All generic functions here
         /// 
         #region Functions
+
+
 
 
         private void PrepareWindowForNewFiles(String[] fileNames)
@@ -55,7 +58,30 @@ namespace Analyze_alarms
                     tab.Text = Path.GetFileName(fileTabText);
                     fileTabControl.TabPages.Add(tab);
 
-                    fileTabControl.TabPages[0].Controls.Add(CreateNewLog(GetData(x)));
+                    //Converts .csv to a datatable and stores it in datatable list: myDataTables
+                    ConvertCSVtoDataTable(x);
+                    
+                    ////Clear columns that have no valuable information
+                    myDataTables[myDataTables.Count - 1].Columns.RemoveAt(15);
+                    myDataTables[myDataTables.Count - 1].Columns.RemoveAt(12);
+                    myDataTables[myDataTables.Count - 1].Columns.RemoveAt(11);
+                    myDataTables[myDataTables.Count - 1].Columns.RemoveAt(10);
+                    myDataTables[myDataTables.Count - 1].Columns.RemoveAt(9);
+                    myDataTables[myDataTables.Count - 1].Columns.RemoveAt(8);
+                    myDataTables[myDataTables.Count - 1].Columns.RemoveAt(7);
+                    myDataTables[myDataTables.Count - 1].Columns.RemoveAt(6);
+                    myDataTables[myDataTables.Count - 1].Columns.RemoveAt(5);
+                    myDataTables[myDataTables.Count - 1].Columns.RemoveAt(1);
+
+                    //Remove last row which just have a count
+                    myDataTables[myDataTables.Count - 1].Rows.RemoveAt(myDataTables[myDataTables.Count - 1].Rows.Count - 1);
+
+                    //Store this data in DB
+                    DatabaseUtilitys dbutil = new DatabaseUtilitys();
+                    dbutil.StoreLogFileInDB(myDataTables[myDataTables.Count - 1]);
+
+                    //Create new user control for this file
+                    fileTabControl.TabPages[0].Controls.Add(CreateNewLog(myDataTables[myDataTables.Count - 1]));
 
                     ////Add TabControl with tabs: Data, Summary, Diagram
                     //tab.Controls.Add(new TabControl());
@@ -73,17 +99,7 @@ namespace Analyze_alarms
                     //dgv.Dock = DockStyle.Bottom;
                     //dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
                     //DataTable dt = GetData(x);
-                    ////Clear columns that have no valuable information
-                    //dt.Columns.RemoveAt(15);
-                    //dt.Columns.RemoveAt(12);
-                    //dt.Columns.RemoveAt(11);
-                    //dt.Columns.RemoveAt(10);
-                    //dt.Columns.RemoveAt(9);
-                    //dt.Columns.RemoveAt(8);
-                    //dt.Columns.RemoveAt(7);
-                    //dt.Columns.RemoveAt(6);
-                    //dt.Columns.RemoveAt(5);
-                    //dt.Columns.RemoveAt(1);
+
                     //dgv.DataSource = dt;
                     //tp_data.Controls.Add(dgv);
 
@@ -97,16 +113,10 @@ namespace Analyze_alarms
 
 
                 }
-
+    
 
             }
             }
-
-        private DataTable GetData(string fileName)
-        {
-            if (fileName != null) return ConvertCSVtoDataTable(fileName);
-            else return null;
-        }
 
         static String GetDateFromString(string inputText)
         {
@@ -127,32 +137,94 @@ namespace Analyze_alarms
 
         }
 
-        public static DataTable ConvertCSVtoDataTable(string strFilePath)
+        public static void ConvertCSVtoDataTable(string strFilePath)
         {
-            DataTable dt = new DataTable();
-            using (StreamReader sr = new StreamReader(strFilePath, System.Text.Encoding.Default))
+            if (strFilePath != null)
             {
-                string[] headers = sr.ReadLine().Split(';');
-                string oneHeader;
-                foreach (string header in headers)
+                DataTable dt = new DataTable();
+                using (StreamReader sr = new StreamReader(strFilePath, System.Text.Encoding.Default))
                 {
-                    oneHeader = header.Trim('"');
-                    dt.Columns.Add(oneHeader);
-                }
-                while (!sr.EndOfStream)
-                {
-                    string[] rows = sr.ReadLine().Split(';');
-                    DataRow dr = dt.NewRow();
-                    for (int i = 0; i < headers.Length; i++)
+                    string[] headers = sr.ReadLine().Split(';');
+                    string oneHeader;
+                    int x = 0;
+                    foreach (string header in headers)
                     {
-                        rows[i] = rows[i].Trim('"');
-                        dr[i] = rows[i];
-                    }
-                    dt.Rows.Add(dr);
-                }
+                        oneHeader = header.Trim('"');
+                        dt.Columns.Add(oneHeader);
 
+                        switch (x)
+                        {
+                            case 0:
+                                dt.Columns[x].DataType = typeof(long);
+                                break;
+
+                            case 2:
+                                dt.Columns[x].DataType = typeof(short);
+                                break;
+
+                            case 3:
+                                dt.Columns[x].DataType = typeof(short);
+                                break;
+
+                            case 4:
+                                dt.Columns[x].DataType = typeof(short);
+                                break;
+
+                            case 13:
+                                dt.Columns[x].DataType = typeof(DateTime);
+                                break;
+                        }                       
+
+                        x++;
+                    }
+                    while (!sr.EndOfStream)
+                    {
+                        string[] rows = sr.ReadLine().Split(';');
+                        DataRow dr = dt.NewRow();
+                        for (int i = 0; i < headers.Length; i++)
+                        {
+                            rows[i] = rows[i].Trim('"');
+                            if (rows[i] != "")
+                            {
+                                switch (i)
+                                {
+                                    case 0:
+                                        long templong;
+                                        if (long.TryParse(rows[i], out templong))
+                                        {
+                                            dr[i] = templong;
+                                        }
+                                        break;
+
+                                    case 2:
+                                        dr[i] = short.Parse(rows[i]);
+                                        break;
+
+                                    case 3:
+                                        dr[i] = short.Parse(rows[i]);
+                                        break;
+
+                                    case 4:
+                                        dr[i] = short.Parse(rows[i]);
+                                        break;
+
+                                    case 13:
+                                        string temp = rows[i].Replace('.', '-');
+                                        dr[i] = DateTime.ParseExact(temp, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                                        break;
+
+                                    default:
+                                        dr[i] = rows[i];
+                                        break;
+                                }
+                            }
+                        }
+                        dt.Rows.Add(dr);
+                    }
+
+                }
+                myDataTables.Add(dt);
             }
-            return dt;
         }
 
         private void SaveRecentFile(string path)
@@ -275,25 +347,28 @@ namespace Analyze_alarms
 
         protected void UC_NewLog_Filter_Button_Click(object sender, EventArgs e)
         {
-            string test = "";
+            //string test = "";
+            //var uc = (UC_NewLog)sender;
+            //foreach (DataRow dr in uc.data.Rows)
+            //{
+            //    test = dr[0].ToString();
+            //    break;
+            //}
+            //MessageBox.Show(test);
+            //test = "HEJSAN";
+            //foreach (DataRow dr1 in uc.data.Rows)
+            //{
+            //    dr1[0] = test;
+            //    break;
+            //}
+            //DataRow dr2;
+            //dr2 = uc.data.Rows[0];
+            //test = dr2[0].ToString();
+            //MessageBox.Show(test);
+            //uc.UpdateDataGridView(uc.data);
             var uc = (UC_NewLog)sender;
-            foreach (DataRow dr in uc.data.Rows)
-            {
-                test = dr[0].ToString();
-                break;
-            }
-            MessageBox.Show(test);
-            test = "HEJSAN";
-            foreach (DataRow dr1 in uc.data.Rows)
-            {
-                dr1[0] = test;
-                break;
-            }
-            DataRow dr2;
-            dr2 = uc.data.Rows[0];
-            test = dr2[0].ToString();
-            MessageBox.Show(test);
-            uc.UpdateDataGridView(uc.data);
+            
+
         }
 
         #endregion

@@ -12,6 +12,21 @@
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile />
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -54,6 +69,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.DirectoryServices" />
     <Reference Include="System.Xml.Linq" />
@@ -67,6 +83,11 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controls.cs" />
+    <Compile Include="LocalDatabaseDataSet.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>LocalDatabaseDataSet.xsd</DependentUpon>
+    </Compile>
     <Compile Include="MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -88,12 +109,19 @@
     <Compile Include="Settings_Form.Designer.cs">
       <DependentUpon>Settings_Form.cs</DependentUpon>
     </Compile>
+    <Compile Include="TEMP.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TEMP.Designer.cs">
+      <DependentUpon>TEMP.cs</DependentUpon>
+    </Compile>
     <Compile Include="UC_NewLog.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="UC_NewLog.Designer.cs">
       <DependentUpon>UC_NewLog.cs</DependentUpon>
     </Compile>
+    <Compile Include="Database_Utilitys.cs" />
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -113,9 +141,23 @@
     <EmbeddedResource Include="Settings_Form.resx">
       <DependentUpon>Settings_Form.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="TEMP.resx">
+      <DependentUpon>TEMP.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="UC_NewLog.resx">
       <DependentUpon>UC_NewLog.cs</DependentUpon>
     </EmbeddedResource>
+    <None Include="LocalDatabaseDataSet.xsc">
+      <DependentUpon>LocalDatabaseDataSet.xsd</DependentUpon>
+    </None>
+    <None Include="LocalDatabaseDataSet.xsd">
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>LocalDatabaseDataSet.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="LocalDatabaseDataSet.xss">
+      <DependentUpon>LocalDatabaseDataSet.xsd</DependentUpon>
+    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -130,7 +172,26 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="LocalDatabase.mdf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="LocalDatabase_log.ldf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <DependentUpon>LocalDatabase.mdf</DependentUpon>
+    </Content>
     <Content Include="RecentProjects.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.SqlServer.SqlLocalDB.11.1">
+      <Visible>False</Visible>
+      <ProductName>SQL Server 2012 Express LocalDB</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

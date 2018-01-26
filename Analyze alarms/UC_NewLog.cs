@@ -17,25 +17,13 @@ namespace Analyze_alarms
         {
             InitializeComponent();
             this.data = data;
-            InitDataTable(data, true);
+            InitDataTable(data);
 
         }
 
-        private void InitDataTable(DataTable data, bool newFile)
+        private void InitDataTable(DataTable data)
         {
-            if (newFile)
-            {
-                data.Columns.RemoveAt(15);
-                data.Columns.RemoveAt(12);
-                data.Columns.RemoveAt(11);
-                data.Columns.RemoveAt(10);
-                data.Columns.RemoveAt(9);
-                data.Columns.RemoveAt(8);
-                data.Columns.RemoveAt(7);
-                data.Columns.RemoveAt(6);
-                data.Columns.RemoveAt(5);
-                data.Columns.RemoveAt(1);
-            }            
+         
             dataGridView1.ReadOnly = true;
             dataGridView1.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.DisableResizing;
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
@@ -46,7 +34,7 @@ namespace Analyze_alarms
 
         public void UpdateDataGridView(DataTable data)
         {
-            InitDataTable(data, false);
+            InitDataTable(data);
         }
 
 
