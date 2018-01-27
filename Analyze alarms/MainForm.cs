@@ -155,7 +155,7 @@ namespace Analyze_alarms
                         switch (x)
                         {
                             case 0:
-                                dt.Columns[x].DataType = typeof(long);
+                                dt.Columns[x].DataType = typeof(double);
                                 break;
 
                             case 2:
@@ -177,6 +177,10 @@ namespace Analyze_alarms
 
                         x++;
                     }
+
+                    dt.Columns.Add("fileName");
+                    //dt.Columns["fileName"].DataType = typeof(String);
+
                     while (!sr.EndOfStream)
                     {
                         string[] rows = sr.ReadLine().Split(';');
@@ -189,8 +193,8 @@ namespace Analyze_alarms
                                 switch (i)
                                 {
                                     case 0:
-                                        long templong;
-                                        if (long.TryParse(rows[i], out templong))
+                                        double templong;
+                                        if (double.TryParse(rows[i], out templong))
                                         {
                                             dr[i] = templong;
                                         }
@@ -219,7 +223,9 @@ namespace Analyze_alarms
                                 }
                             }
                         }
+                        dr[16] = strFilePath;
                         dt.Rows.Add(dr);
+                        
                     }
 
                 }
@@ -418,6 +424,9 @@ namespace Analyze_alarms
         private void clearAllToolStripMenuItem_Click(object sender, EventArgs e)
         {
             fileTabControl.TabPages.Clear();
+            myDataTables.Clear();
+            openedFiles.Clear();
+
             
         }
 

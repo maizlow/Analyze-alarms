@@ -14,14 +14,6 @@ namespace Analyze_alarms
 
         public bool StoreLogFileInDB(DataTable data)
         {
-
-            ////Creates the connection
-            //SqlConnection conn = new SqlConnection(GetConnectionString());
-
-            ////Crates the command and make it a StoredProcedure
-            //SqlCommand cmd = new SqlCommand("INSERT INTO Logs(Time_ms, State_After, Msg_Class, TimeString, MsgText) " +
-            //                                        "VALUES(@Time_ms, @State_After, @Msg_Class, @TimeString, @MsgText)", conn);
-
             try
             {
 
@@ -35,14 +27,15 @@ namespace Analyze_alarms
                     }
 
                     bulkCopy.BulkCopyTimeout = 600;
-                    bulkCopy.DestinationTableName = "Logs";
+                    bulkCopy.DestinationTableName = "LogFiles";
                     bulkCopy.WriteToServer(data);
                 }
-
+                return true;
+                //TEST CODE THAT READS BACK AND SHOWS DATABASE
                 SqlConnection conn = new SqlConnection(GetConnectionString());
                 conn.Open();
 
-                SqlCommand command = new SqlCommand("Select * from [Logs]", conn);
+                SqlCommand command = new SqlCommand("Select * from [LogFiles]", conn);
                 DataTable dt = new DataTable();
                 
                 int i = 0;
@@ -76,18 +69,7 @@ namespace Analyze_alarms
                 tmp.Show();
 
                 conn.Close();
-                //conn.Open();
-
-                //foreach (DataRow dr in data.Rows)
-                //{
-                //    cmd.Parameters.AddWithValue("@Time_ms", dr[0]);
-                //    cmd.Parameters.AddWithValue("@State_After", dr[1]);
-                //    cmd.Parameters.AddWithValue("@Msg_Class", dr[2]);
-                //    cmd.Parameters.AddWithValue("@TimeString", dr[3]);
-                //    cmd.Parameters.AddWithValue("@MsgText", dr[4]);
-                //    cmd.ExecuteNonQuery();
-                //}
-
+              
             }
             catch(Exception ex)
             {
