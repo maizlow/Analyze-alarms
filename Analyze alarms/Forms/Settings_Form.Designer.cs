@@ -52,6 +52,7 @@
             this.lbl_ClassNumber = new System.Windows.Forms.Label();
             this.tb_ClassName = new System.Windows.Forms.TextBox();
             this.lbl_ClassName = new System.Windows.Forms.Label();
+            this.btn_DeleteSelected = new System.Windows.Forms.Button();
             this.gb_ExistingClasses.SuspendLayout();
             this.gb_EditAdd.SuspendLayout();
             this.p_LogBitSelect.SuspendLayout();
@@ -110,6 +111,7 @@
             // 
             // gb_ExistingClasses
             // 
+            this.gb_ExistingClasses.Controls.Add(this.btn_DeleteSelected);
             this.gb_ExistingClasses.Controls.Add(this.btn_AddNew);
             this.gb_ExistingClasses.Controls.Add(this.btn_EditSelected);
             this.gb_ExistingClasses.Controls.Add(this.ExistingClassesLV);
@@ -318,6 +320,17 @@
             this.lbl_ClassName.TabIndex = 0;
             this.lbl_ClassName.Text = "Class name";
             // 
+            // btn_DeleteSelected
+            // 
+            this.btn_DeleteSelected.Enabled = false;
+            this.btn_DeleteSelected.Location = new System.Drawing.Point(242, 206);
+            this.btn_DeleteSelected.Name = "btn_DeleteSelected";
+            this.btn_DeleteSelected.Size = new System.Drawing.Size(98, 23);
+            this.btn_DeleteSelected.TabIndex = 8;
+            this.btn_DeleteSelected.Text = "Delete selected";
+            this.btn_DeleteSelected.UseVisualStyleBackColor = true;
+            this.btn_DeleteSelected.Click += new System.EventHandler(this.btn_DeleteSelected_Click);
+            // 
             // Settings_Form
             // 
             this.AcceptButton = this.btn_OK;
@@ -372,5 +385,6 @@
         private System.Windows.Forms.RadioButton radioButton2;
         private System.Windows.Forms.RadioButton radioButton1;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Button btn_DeleteSelected;
     }
 }

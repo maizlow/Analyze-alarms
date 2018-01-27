@@ -68,9 +68,10 @@ namespace Analyze_alarms
             //Remove last row which just have a count
             myDataTables[myDataTables.Count - 1].Rows.RemoveAt(myDataTables[myDataTables.Count - 1].Rows.Count - 1);
 
+            //TODO: Only save an analyzed log to database
             //Store this data in DB
-            DatabaseUtilitys dbutil = new DatabaseUtilitys();
-            dbutil.StoreLogFileInDB(myDataTables[myDataTables.Count - 1]);
+            //DatabaseUtilitys dbutil = new DatabaseUtilitys();
+            //dbutil.StoreLogFileInDB(myDataTables[myDataTables.Count - 1]);
 
             //Create new user control for this file
             fileTabControl.TabPages[0].Controls.Add(CreateNewLog(myDataTables[myDataTables.Count - 1]));
@@ -352,6 +353,35 @@ namespace Analyze_alarms
 
         }
 
+        private void LoadLogSettingsFromFile()
+        {
+            if (!File.Exists(System.Environment.CurrentDirectory + logSettingsFileName)) CreateStandardSettingsXML();
+            else
+            {
+                try
+                {
+                    logSettings = new List<LogSettings>();
+                    foreach (XElement item in XElement.Load(System.Environment.CurrentDirectory + logSettingsFileName).Elements("class"))
+                    {
+                        logSettings.Add(new LogSettings()
+                        {
+                            className = item.Attribute("className").Value,
+                            classNr = int.Parse(item.Attribute("classNr").Value),
+                            classType = int.Parse(item.Attribute("classType").Value),
+                            messageNr = int.Parse(item.Attribute("messageNr").Value),
+                            subClassMember = int.Parse(item.Attribute("subClassMember").Value),
+                            isProdActiveLogBit = (bool)item.Attribute("prodActive"),
+                            isShiftActiveLogBit = (bool)item.Attribute("shiftActive")
+                        });
+                    }
+
+
+                }
+                catch (Exception ex)
+                { MessageBox.Show(ex.Message); }
+            }
+        }
+
         private UC_NewLog CreateNewLog(DataTable data)
         {
             var uc = new UC_NewLog(data);
@@ -465,31 +495,7 @@ namespace Analyze_alarms
         {
 
             LoadRecentList("\\Data\\RecentLogs.txt");
-            if (!File.Exists(System.Environment.CurrentDirectory + logSettingsFileName)) CreateStandardSettingsXML();
-            else
-            {
-                try
-                {
-                    logSettings = new List<LogSettings>();
-                    foreach (XElement item in XElement.Load(System.Environment.CurrentDirectory + logSettingsFileName).Elements("class"))
-                    {
-                        logSettings.Add(new LogSettings()
-                        {
-                            className = item.Attribute("className").Value,
-                            classNr = int.Parse(item.Attribute("classNr").Value),
-                            classType = int.Parse(item.Attribute("classType").Value),
-                            messageNr = int.Parse(item.Attribute("messageNr").Value),
-                            subClassMember = int.Parse(item.Attribute("subClassMember").Value),
-                            isProdActiveLogBit = (bool)item.Attribute("prodActive"),
-                            isShiftActiveLogBit = (bool)item.Attribute("shiftActive")
-                        });
-                    }
-
-
-                }
-                catch (Exception ex)
-                { MessageBox.Show(ex.Message); }
-            }
+            LoadLogSettingsFromFile();
 
         }
 

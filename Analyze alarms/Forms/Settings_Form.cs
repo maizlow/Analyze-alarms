@@ -68,7 +68,19 @@ namespace Analyze_alarms
                 tb_ClassNr.Text = selectedSetting.classNr.ToString();
                 cb_ClassType.SelectedIndex = selectedSetting.classType - 1;
                 tb_MsgNr.Text = selectedSetting.messageNr.ToString();
-                cb_SubClassMember.SelectedIndex = selectedSetting.subClassMember - 1;
+
+                foreach(LogSettings ls in localListOfSettings)
+                {
+                    if (ls.classNr == selectedSetting.subClassMember )
+                    {
+                        foreach (var item in cb_SubClassMember.Items)
+                        {
+                            if (item.ToString() == ls.className)
+                                cb_SubClassMember.SelectedItem = item;
+                        }
+                    }
+                }
+                
                 if (selectedSetting.isProdActiveLogBit) radioButton1.Checked = true;
                 else if (selectedSetting.isShiftActiveLogBit) radioButton2.Checked = true;
                 else
@@ -101,6 +113,17 @@ namespace Analyze_alarms
                 //Prevent some event from firering
                 fillingInfoForEdit = false;
             }
+        }
+
+        private void btn_DeleteSelected_Click(object sender, EventArgs e)
+        {
+            if (ExistingClassesLV.SelectedIndices != null)
+            {
+                localListOfSettings.Remove(selectedSetting);
+                btn_DeleteSelected.Enabled = false;
+                InitListView();
+            }
+
         }
 
         private void btn_AddNew_Click(object sender, EventArgs e)
@@ -208,6 +231,7 @@ namespace Analyze_alarms
                 {
                     isEditingIndexInLv = ExistingClassesLV.SelectedIndices[0];
                     btn_EditSelected.Enabled = true;
+                    btn_DeleteSelected.Enabled = true;
                 }
             }
 
@@ -313,15 +337,24 @@ namespace Analyze_alarms
 
         private void cb_SubClassMember_SelectedIndexChanged(object sender, EventArgs e)
         {
+            if (fillingInfoForEdit) return;
             //Editing existing
             if (isEditing)
             {
-                updatedSetting.subClassMember = cb_SubClassMember.SelectedIndex + 1;
+                foreach (LogSettings s in localListOfSettings)
+                {
+                    if (s.className == cb_SubClassMember.SelectedItem.ToString())
+                        updatedSetting.subClassMember = s.classNr;
+                }
             }
             //Adding new
             else
             {
-                newSetting.subClassMember = cb_SubClassMember.SelectedIndex + 1;
+                foreach (LogSettings s in localListOfSettings)
+                {
+                    if (s.className == cb_SubClassMember.SelectedItem.ToString())
+                        newSetting.subClassMember = s.classNr;
+                }
             }
 
             CheckIfAllowApply();
@@ -400,7 +433,7 @@ namespace Analyze_alarms
             cb_SubClassMember.Items.Clear();
             foreach (LogSettings s in localListOfSettings)
             {
-                if (s.classType > 3 && s.classType < 12)
+                if (s.classType == 4)
                     cb_SubClassMember.Items.Add(s.className);
             }
         }
@@ -408,6 +441,7 @@ namespace Analyze_alarms
         private void InitListView()
         {
             ExistingClassesLV.Items.Clear();
+            ExistingClassesLV.Columns.Clear();
             ExistingClassesLV.View = View.Details;
             ExistingClassesLV.FullRowSelect = true;
             ExistingClassesLV.Columns.Add("Class name", 150);
@@ -568,6 +602,7 @@ namespace Analyze_alarms
         }
 
         #endregion
+
 
     }
 }

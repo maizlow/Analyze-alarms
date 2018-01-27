@@ -41,26 +41,46 @@
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.tp_Data = new System.Windows.Forms.TabPage();
             this.tp_Summary = new System.Windows.Forms.TabPage();
+            this.label15 = new System.Windows.Forms.Label();
+            this.label16 = new System.Windows.Forms.Label();
+            this.label17 = new System.Windows.Forms.Label();
+            this.label18 = new System.Windows.Forms.Label();
+            this.lbl_TotalActiveShiftTime = new System.Windows.Forms.Label();
+            this.lbl_TotalTime = new System.Windows.Forms.Label();
+            this.label19 = new System.Windows.Forms.Label();
+            this.lbl_Runtime = new System.Windows.Forms.Label();
+            this.lbl_AmountOfStops = new System.Windows.Forms.Label();
+            this.lbl_StopTime = new System.Windows.Forms.Label();
+            this.dataGridView2 = new System.Windows.Forms.DataGridView();
             this.label3 = new System.Windows.Forms.Label();
             this.tp_Diagram = new System.Windows.Forms.TabPage();
             this.label4 = new System.Windows.Forms.Label();
+            this.panel1 = new System.Windows.Forms.Panel();
+            this.tp_Report = new System.Windows.Forms.TabPage();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.gb_Modify.SuspendLayout();
             this.gb_Data.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tp_Data.SuspendLayout();
             this.tp_Summary.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).BeginInit();
             this.tp_Diagram.SuspendLayout();
+            this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // dataGridView1
             // 
+            this.dataGridView1.AllowUserToAddRows = false;
+            this.dataGridView1.AllowUserToDeleteRows = false;
             this.dataGridView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridView1.EditMode = System.Windows.Forms.DataGridViewEditMode.EditProgrammatically;
             this.dataGridView1.Location = new System.Drawing.Point(6, 19);
             this.dataGridView1.Name = "dataGridView1";
+            this.dataGridView1.ReadOnly = true;
+            this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dataGridView1.Size = new System.Drawing.Size(569, 354);
             this.dataGridView1.TabIndex = 1;
             // 
@@ -157,10 +177,13 @@
             // 
             // tabControl1
             // 
+            this.tabControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.tabControl1.Controls.Add(this.tp_Data);
             this.tabControl1.Controls.Add(this.tp_Summary);
             this.tabControl1.Controls.Add(this.tp_Diagram);
-            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabControl1.Controls.Add(this.tp_Report);
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Margin = new System.Windows.Forms.Padding(0);
             this.tabControl1.Name = "tabControl1";
@@ -182,6 +205,8 @@
             // 
             // tp_Summary
             // 
+            this.tp_Summary.Controls.Add(this.panel1);
+            this.tp_Summary.Controls.Add(this.dataGridView2);
             this.tp_Summary.Controls.Add(this.label3);
             this.tp_Summary.Location = new System.Drawing.Point(4, 22);
             this.tp_Summary.Name = "tp_Summary";
@@ -190,6 +215,123 @@
             this.tp_Summary.TabIndex = 1;
             this.tp_Summary.Text = "Summary";
             this.tp_Summary.UseVisualStyleBackColor = true;
+            // 
+            // label15
+            // 
+            this.label15.AutoSize = true;
+            this.label15.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+            this.label15.Location = new System.Drawing.Point(4, 3);
+            this.label15.Name = "label15";
+            this.label15.Size = new System.Drawing.Size(149, 17);
+            this.label15.TabIndex = 1;
+            this.label15.Text = "Total amount of stops:";
+            // 
+            // label16
+            // 
+            this.label16.AutoSize = true;
+            this.label16.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+            this.label16.Location = new System.Drawing.Point(4, 23);
+            this.label16.Name = "label16";
+            this.label16.Size = new System.Drawing.Size(101, 17);
+            this.label16.TabIndex = 3;
+            this.label16.Text = "Total stoptime:";
+            // 
+            // label17
+            // 
+            this.label17.AutoSize = true;
+            this.label17.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+            this.label17.Location = new System.Drawing.Point(4, 43);
+            this.label17.Name = "label17";
+            this.label17.Size = new System.Drawing.Size(95, 17);
+            this.label17.TabIndex = 10;
+            this.label17.Text = "Total runtime:";
+            // 
+            // label18
+            // 
+            this.label18.AutoSize = true;
+            this.label18.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+            this.label18.Location = new System.Drawing.Point(4, 63);
+            this.label18.Name = "label18";
+            this.label18.Size = new System.Drawing.Size(74, 17);
+            this.label18.TabIndex = 10;
+            this.label18.Text = "Total time:";
+            // 
+            // lbl_TotalActiveShiftTime
+            // 
+            this.lbl_TotalActiveShiftTime.AutoSize = true;
+            this.lbl_TotalActiveShiftTime.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbl_TotalActiveShiftTime.Location = new System.Drawing.Point(176, 83);
+            this.lbl_TotalActiveShiftTime.Name = "lbl_TotalActiveShiftTime";
+            this.lbl_TotalActiveShiftTime.Size = new System.Drawing.Size(64, 16);
+            this.lbl_TotalActiveShiftTime.TabIndex = 12;
+            this.lbl_TotalActiveShiftTime.Text = "99:99:99";
+            // 
+            // lbl_TotalTime
+            // 
+            this.lbl_TotalTime.AutoSize = true;
+            this.lbl_TotalTime.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbl_TotalTime.Location = new System.Drawing.Point(176, 63);
+            this.lbl_TotalTime.Name = "lbl_TotalTime";
+            this.lbl_TotalTime.Size = new System.Drawing.Size(64, 16);
+            this.lbl_TotalTime.TabIndex = 11;
+            this.lbl_TotalTime.Text = "99:99:99";
+            // 
+            // label19
+            // 
+            this.label19.AutoSize = true;
+            this.label19.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
+            this.label19.Location = new System.Drawing.Point(4, 83);
+            this.label19.Name = "label19";
+            this.label19.Size = new System.Drawing.Size(145, 17);
+            this.label19.TabIndex = 10;
+            this.label19.Text = "Total shift active time:";
+            // 
+            // lbl_Runtime
+            // 
+            this.lbl_Runtime.AutoSize = true;
+            this.lbl_Runtime.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbl_Runtime.Location = new System.Drawing.Point(176, 43);
+            this.lbl_Runtime.Name = "lbl_Runtime";
+            this.lbl_Runtime.Size = new System.Drawing.Size(64, 16);
+            this.lbl_Runtime.TabIndex = 13;
+            this.lbl_Runtime.Text = "99:99:99";
+            // 
+            // lbl_AmountOfStops
+            // 
+            this.lbl_AmountOfStops.AutoSize = true;
+            this.lbl_AmountOfStops.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbl_AmountOfStops.Location = new System.Drawing.Point(176, 3);
+            this.lbl_AmountOfStops.Name = "lbl_AmountOfStops";
+            this.lbl_AmountOfStops.Size = new System.Drawing.Size(32, 16);
+            this.lbl_AmountOfStops.TabIndex = 10;
+            this.lbl_AmountOfStops.Text = "999";
+            // 
+            // lbl_StopTime
+            // 
+            this.lbl_StopTime.AutoSize = true;
+            this.lbl_StopTime.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbl_StopTime.Location = new System.Drawing.Point(176, 23);
+            this.lbl_StopTime.Name = "lbl_StopTime";
+            this.lbl_StopTime.Size = new System.Drawing.Size(64, 16);
+            this.lbl_StopTime.TabIndex = 10;
+            this.lbl_StopTime.Text = "99:99:99";
+            // 
+            // dataGridView2
+            // 
+            this.dataGridView2.AllowUserToAddRows = false;
+            this.dataGridView2.AllowUserToDeleteRows = false;
+            this.dataGridView2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.dataGridView2.Location = new System.Drawing.Point(6, 117);
+            this.dataGridView2.MultiSelect = false;
+            this.dataGridView2.Name = "dataGridView2";
+            this.dataGridView2.RowHeadersWidthSizeMode = System.Windows.Forms.DataGridViewRowHeadersWidthSizeMode.AutoSizeToDisplayedHeaders;
+            this.dataGridView2.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dataGridView2.Size = new System.Drawing.Size(581, 351);
+            this.dataGridView2.TabIndex = 1;
+            this.dataGridView2.Visible = false;
+            this.dataGridView2.RowPrePaint += new System.Windows.Forms.DataGridViewRowPrePaintEventHandler(this.dataGridView2_RowPrePaint);
             // 
             // label3
             // 
@@ -219,10 +361,40 @@
             this.label4.TabIndex = 1;
             this.label4.Text = "No analysis done.";
             // 
+            // panel1
+            // 
+            this.panel1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.panel1.Controls.Add(this.label15);
+            this.panel1.Controls.Add(this.lbl_Runtime);
+            this.panel1.Controls.Add(this.label16);
+            this.panel1.Controls.Add(this.label19);
+            this.panel1.Controls.Add(this.label17);
+            this.panel1.Controls.Add(this.lbl_AmountOfStops);
+            this.panel1.Controls.Add(this.lbl_TotalTime);
+            this.panel1.Controls.Add(this.label18);
+            this.panel1.Controls.Add(this.lbl_StopTime);
+            this.panel1.Controls.Add(this.lbl_TotalActiveShiftTime);
+            this.panel1.Location = new System.Drawing.Point(7, 6);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(580, 105);
+            this.panel1.TabIndex = 14;
+            this.panel1.Visible = false;
+            // 
+            // tp_Report
+            // 
+            this.tp_Report.Location = new System.Drawing.Point(4, 22);
+            this.tp_Report.Name = "tp_Report";
+            this.tp_Report.Size = new System.Drawing.Size(593, 474);
+            this.tp_Report.TabIndex = 3;
+            this.tp_Report.Text = "Report";
+            this.tp_Report.UseVisualStyleBackColor = true;
+            // 
             // UC_NewLog
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoSize = true;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.Controls.Add(this.tabControl1);
             this.Name = "UC_NewLog";
@@ -236,8 +408,11 @@
             this.tp_Data.ResumeLayout(false);
             this.tp_Summary.ResumeLayout(false);
             this.tp_Summary.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView2)).EndInit();
             this.tp_Diagram.ResumeLayout(false);
             this.tp_Diagram.PerformLayout();
+            this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -259,5 +434,18 @@
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.Button btn_Analyze;
+        private System.Windows.Forms.Label label15;
+        private System.Windows.Forms.Label label16;
+        private System.Windows.Forms.Label label17;
+        private System.Windows.Forms.Label label18;
+        private System.Windows.Forms.Label lbl_TotalActiveShiftTime;
+        private System.Windows.Forms.Label lbl_TotalTime;
+        private System.Windows.Forms.Label label19;
+        private System.Windows.Forms.Label lbl_Runtime;
+        private System.Windows.Forms.Label lbl_AmountOfStops;
+        private System.Windows.Forms.Label lbl_StopTime;
+        private System.Windows.Forms.DataGridView dataGridView2;
+        private System.Windows.Forms.Panel panel1;
+        private System.Windows.Forms.TabPage tp_Report;
     }
 }

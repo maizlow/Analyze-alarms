@@ -31,44 +31,44 @@ namespace Analyze_alarms
                     bulkCopy.WriteToServer(data);
                 }
                 return true;
-                //TEST CODE THAT READS BACK AND SHOWS DATABASE
-                SqlConnection conn = new SqlConnection(GetConnectionString());
-                conn.Open();
+                ////TEST CODE THAT READS BACK AND SHOWS DATABASE
+                //SqlConnection conn = new SqlConnection(GetConnectionString());
+                //conn.Open();
 
-                SqlCommand command = new SqlCommand("Select * from [LogFiles]", conn);
-                DataTable dt = new DataTable();
+                //SqlCommand command = new SqlCommand("Select * from [LogFiles]", conn);
+                //DataTable dt = new DataTable();
                 
-                int i = 0;
+                //int i = 0;
 
-                for (i = 0; i < 6; i++)
-                {
-                    dt.Columns.Add();
-                }
+                //for (i = 0; i < 6; i++)
+                //{
+                //    dt.Columns.Add();
+                //}
 
-                i = 0;
-                using (SqlDataReader reader = command.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        DataRow dr = dt.NewRow();
-                        dr[0] = reader[0];
-                        dr[1] = reader[1];
-                        dr[2] = reader[2];
-                        dr[3] = reader[3];
-                        dr[4] = reader[4];
-                        dr[5] = reader[5];
-                        dt.Rows.Add(dr);
-                    }
+                //i = 0;
+                //using (SqlDataReader reader = command.ExecuteReader())
+                //{
+                //    while (reader.Read())
+                //    {
+                //        DataRow dr = dt.NewRow();
+                //        dr[0] = reader[0];
+                //        dr[1] = reader[1];
+                //        dr[2] = reader[2];
+                //        dr[3] = reader[3];
+                //        dr[4] = reader[4];
+                //        dr[5] = reader[5];
+                //        dt.Rows.Add(dr);
+                //    }
 
 
-                }
+                //}
 
-                TEMP tmp = new TEMP();
-                DataGridView dgv = (DataGridView)tmp.Controls[0];
-                dgv.DataSource = dt;
-                tmp.Show();
+                //TEMP tmp = new TEMP();
+                //DataGridView dgv = (DataGridView)tmp.Controls[0];
+                //dgv.DataSource = dt;
+                //tmp.Show();
 
-                conn.Close();
+                //conn.Close();
               
             }
             catch(Exception ex)
