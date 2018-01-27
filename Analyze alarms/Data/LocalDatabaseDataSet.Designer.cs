@@ -10,7 +10,7 @@
 
 #pragma warning disable 1591
 
-namespace Analyze_alarms {
+namespace Analyze_alarms.Data {
     
     
     /// <summary>

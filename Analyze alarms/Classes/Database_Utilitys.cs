@@ -83,7 +83,7 @@ namespace Analyze_alarms
         //Get the connection string from App config file.  
         internal static string GetConnectionString()
         {
-            return "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename="+ System.Environment.CurrentDirectory + "\\LocalDatabase.mdf;Integrated Security=True";
+            return "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename="+ System.Environment.CurrentDirectory + "\\Data\\LocalDatabase.mdf;Integrated Security=True";
 
         }
     }

@@ -82,50 +82,49 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Controls.cs" />
-    <Compile Include="LocalDatabaseDataSet.Designer.cs">
+    <Compile Include="Data\LocalDatabaseDataSet.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>LocalDatabaseDataSet.xsd</DependentUpon>
     </Compile>
-    <Compile Include="MainForm.cs">
+    <Compile Include="Forms\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="MainForm.Designer.cs">
+    <Compile Include="Forms\MainForm.Designer.cs">
       <DependentUpon>MainForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="HELP_LogSettings.cs">
+    <Compile Include="Forms\HELP_LogSettings.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="HELP_LogSettings.Designer.cs">
+    <Compile Include="Forms\HELP_LogSettings.Designer.cs">
       <DependentUpon>HELP_LogSettings.cs</DependentUpon>
     </Compile>
-    <Compile Include="LogSettings.cs" />
+    <Compile Include="Classes\LogSettings.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Settings_Form.cs">
+    <Compile Include="Forms\Settings_Form.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Settings_Form.Designer.cs">
+    <Compile Include="Forms\Settings_Form.Designer.cs">
       <DependentUpon>Settings_Form.cs</DependentUpon>
     </Compile>
-    <Compile Include="TEMP.cs">
+    <Compile Include="_Tests\TEMP.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="TEMP.Designer.cs">
+    <Compile Include="_Tests\TEMP.Designer.cs">
       <DependentUpon>TEMP.cs</DependentUpon>
     </Compile>
-    <Compile Include="UC_NewLog.cs">
+    <Compile Include="UserControls\UC_NewLog.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="UC_NewLog.Designer.cs">
+    <Compile Include="UserControls\UC_NewLog.Designer.cs">
       <DependentUpon>UC_NewLog.cs</DependentUpon>
     </Compile>
-    <Compile Include="Database_Utilitys.cs" />
-    <EmbeddedResource Include="MainForm.resx">
+    <Compile Include="Classes\Database_Utilitys.cs" />
+    <EmbeddedResource Include="Forms\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="HELP_LogSettings.resx">
+    <EmbeddedResource Include="Forms\HELP_LogSettings.resx">
       <DependentUpon>HELP_LogSettings.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -138,24 +137,24 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <EmbeddedResource Include="Settings_Form.resx">
+    <EmbeddedResource Include="Forms\Settings_Form.resx">
       <DependentUpon>Settings_Form.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="TEMP.resx">
+    <EmbeddedResource Include="_Tests\TEMP.resx">
       <DependentUpon>TEMP.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UC_NewLog.resx">
+    <EmbeddedResource Include="UserControls\UC_NewLog.resx">
       <DependentUpon>UC_NewLog.cs</DependentUpon>
     </EmbeddedResource>
-    <None Include="LocalDatabaseDataSet.xsc">
+    <None Include="Data\LocalDatabaseDataSet.xsc">
       <DependentUpon>LocalDatabaseDataSet.xsd</DependentUpon>
     </None>
-    <None Include="LocalDatabaseDataSet.xsd">
+    <None Include="Data\LocalDatabaseDataSet.xsd">
       <Generator>MSDataSetGenerator</Generator>
       <LastGenOutput>LocalDatabaseDataSet.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </None>
-    <None Include="LocalDatabaseDataSet.xss">
+    <None Include="Data\LocalDatabaseDataSet.xss">
       <DependentUpon>LocalDatabaseDataSet.xsd</DependentUpon>
     </None>
     <None Include="Properties\Settings.settings">
@@ -172,14 +171,14 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="LocalDatabase.mdf">
+    <Content Include="Data\LocalDatabase.mdf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="LocalDatabase_log.ldf">
+    <Content Include="Data\LocalDatabase_log.ldf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <DependentUpon>LocalDatabase.mdf</DependentUpon>
     </Content>
-    <Content Include="RecentProjects.txt" />
+    <Content Include="Data\RecentProjects.txt" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">

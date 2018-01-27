@@ -16,6 +16,7 @@ namespace Analyze_alarms
         public UC_NewLog(DataTable data)
         {
             InitializeComponent();
+
             this.data = data;
             InitDataTable(data);
 

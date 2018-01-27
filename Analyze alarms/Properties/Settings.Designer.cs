@@ -26,9 +26,8 @@ namespace Analyze_alarms.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=\"C:\\Users\\Johan\\Desktop\\ABECE" +
-            " Alarm analyzer\\Analyze alarms\\Analyze alarms\\LocalDatabase.mdf\";Integrated Secu" +
-            "rity=True")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=|DataDirectory|\\Data\\LocalDat" +
+            "abase.mdf;Integrated Security=True")]
         public string LocalDatabaseConnectionString {
             get {
                 return ((string)(this["LocalDatabaseConnectionString"]));
