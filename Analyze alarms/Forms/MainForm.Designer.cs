@@ -48,6 +48,8 @@
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.customizeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.logsettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
+            this.recentLogsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -153,7 +155,9 @@
             this.logsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.openLogsToolStripMenuItem,
             this.toolStripSeparator3,
-            this.clearAllToolStripMenuItem});
+            this.clearAllToolStripMenuItem,
+            this.toolStripSeparator4,
+            this.recentLogsToolStripMenuItem});
             this.logsToolStripMenuItem.Name = "logsToolStripMenuItem";
             this.logsToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.logsToolStripMenuItem.Text = "Logs";
@@ -161,19 +165,19 @@
             // openLogsToolStripMenuItem
             // 
             this.openLogsToolStripMenuItem.Name = "openLogsToolStripMenuItem";
-            this.openLogsToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
+            this.openLogsToolStripMenuItem.Size = new System.Drawing.Size(160, 22);
             this.openLogsToolStripMenuItem.Text = "Open logs...";
             this.openLogsToolStripMenuItem.Click += new System.EventHandler(this.openLogsToolStripMenuItem_Click);
             // 
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(138, 6);
+            this.toolStripSeparator3.Size = new System.Drawing.Size(157, 6);
             // 
             // clearAllToolStripMenuItem
             // 
             this.clearAllToolStripMenuItem.Name = "clearAllToolStripMenuItem";
-            this.clearAllToolStripMenuItem.Size = new System.Drawing.Size(141, 22);
+            this.clearAllToolStripMenuItem.Size = new System.Drawing.Size(160, 22);
             this.clearAllToolStripMenuItem.Text = "Clear all logs";
             this.clearAllToolStripMenuItem.Click += new System.EventHandler(this.clearAllToolStripMenuItem_Click);
             // 
@@ -198,6 +202,17 @@
             this.logsettingsToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
             this.logsettingsToolStripMenuItem.Text = "Logsettings";
             this.logsettingsToolStripMenuItem.Click += new System.EventHandler(this.logsettingsToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator4
+            // 
+            this.toolStripSeparator4.Name = "toolStripSeparator4";
+            this.toolStripSeparator4.Size = new System.Drawing.Size(157, 6);
+            // 
+            // recentLogsToolStripMenuItem
+            // 
+            this.recentLogsToolStripMenuItem.Name = "recentLogsToolStripMenuItem";
+            this.recentLogsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.recentLogsToolStripMenuItem.Text = "Recent logs";
             // 
             // MainForm
             // 
@@ -240,6 +255,8 @@
         private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem customizeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem logsettingsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
+        private System.Windows.Forms.ToolStripMenuItem recentLogsToolStripMenuItem;
     }
 }
 

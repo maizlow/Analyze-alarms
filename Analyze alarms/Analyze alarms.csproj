@@ -178,7 +178,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <DependentUpon>LocalDatabase.mdf</DependentUpon>
     </Content>
-    <Content Include="Data\RecentProjects.txt" />
+    <Content Include="Data\RecentLogs.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">

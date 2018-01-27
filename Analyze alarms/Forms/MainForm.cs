@@ -25,7 +25,7 @@ namespace Analyze_alarms
 
         public static List<LogSettings> logSettings;
 
-        
+
 
         public MainForm()
         {
@@ -39,84 +39,86 @@ namespace Analyze_alarms
         #region Functions
 
 
+        private void AddNewLogControl(string filePath)
+        {
+            SaveRecentLogFile(filePath);
+            //Add tabpage with date as name
+            string fileTabText = GetDateFromString(filePath).ToString();
+            fileTabText = CheckIfDuplicateDate(fileTabText);
 
+            TabPage tab = new TabPage();
+            tab.Text = fileTabText;
+            fileTabControl.TabPages.Add(tab);
 
-        private void PrepareWindowForNewFiles(String[] fileNames)
+            //Converts .csv to a datatable and stores it in datatable list: myDataTables
+            ConvertCSVtoDataTable(filePath);
+
+            ////Clear columns that have no valuable information
+            myDataTables[myDataTables.Count - 1].Columns.RemoveAt(15);
+            myDataTables[myDataTables.Count - 1].Columns.RemoveAt(12);
+            myDataTables[myDataTables.Count - 1].Columns.RemoveAt(11);
+            myDataTables[myDataTables.Count - 1].Columns.RemoveAt(10);
+            myDataTables[myDataTables.Count - 1].Columns.RemoveAt(9);
+            myDataTables[myDataTables.Count - 1].Columns.RemoveAt(8);
+            myDataTables[myDataTables.Count - 1].Columns.RemoveAt(7);
+            myDataTables[myDataTables.Count - 1].Columns.RemoveAt(6);
+            myDataTables[myDataTables.Count - 1].Columns.RemoveAt(5);
+            myDataTables[myDataTables.Count - 1].Columns.RemoveAt(1);
+
+            //Remove last row which just have a count
+            myDataTables[myDataTables.Count - 1].Rows.RemoveAt(myDataTables[myDataTables.Count - 1].Rows.Count - 1);
+
+            //Store this data in DB
+            DatabaseUtilitys dbutil = new DatabaseUtilitys();
+            dbutil.StoreLogFileInDB(myDataTables[myDataTables.Count - 1]);
+
+            //Create new user control for this file
+            fileTabControl.TabPages[0].Controls.Add(CreateNewLog(myDataTables[myDataTables.Count - 1]));
+
+            ////Add TabControl with tabs: Data, Summary, Diagram
+            //tab.Controls.Add(new TabControl());
+            //TabControl tabCntrl = (TabControl)tab.Controls[0];
+            //tabCntrl.Dock = DockStyle.Fill;
+            //tabCntrl.TabPages.Add(new TabPage());
+            //tabCntrl.TabPages.Add(new TabPage());
+            //tabCntrl.TabPages.Add(new TabPage());
+
+            //var tp_data = (TabPage)tabCntrl.TabPages[0];
+            //tp_data.Text = "Data";
+            //DataGridView dgv = new DataGridView();
+            //dgv.ReadOnly = true;
+            //dgv.Height = tabCntrl.TabPages[0].Height - 30;
+            //dgv.Dock = DockStyle.Bottom;
+            //dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            //DataTable dt = GetData(x);
+
+            //dgv.DataSource = dt;
+            //tp_data.Controls.Add(dgv);
+
+            //TabPage tp_summary = (TabPage)tabCntrl.TabPages[1];
+            //tp_summary.Text = "Summary";
+
+            //TabPage tp_diagram = (TabPage)tabCntrl.TabPages[2];
+            //tp_diagram.Text = "Diagram";
+        }
+
+        private void PrepareWindowForNewFiles(string[] filePaths = null, string filePath = "")
         {
             //if a single file is openend
-            if (fileNames.Length > 0)
+            if (filePaths != null)
             {
-                
-                foreach (string x in fileNames)
+                foreach (string x in filePaths)
                 {
-                    SaveRecentFile(x);
-                    //Add tabpage with date as name
-                    string fileTabText = GetDateFromString(x).ToString();
-                    fileTabText = CheckIfDuplicateDate(fileTabText);
-
-                    TabPage tab = new TabPage();
-                    tab.Text = Path.GetFileName(fileTabText);
-                    fileTabControl.TabPages.Add(tab);
-
-                    //Converts .csv to a datatable and stores it in datatable list: myDataTables
-                    ConvertCSVtoDataTable(x);
-                    
-                    ////Clear columns that have no valuable information
-                    myDataTables[myDataTables.Count - 1].Columns.RemoveAt(15);
-                    myDataTables[myDataTables.Count - 1].Columns.RemoveAt(12);
-                    myDataTables[myDataTables.Count - 1].Columns.RemoveAt(11);
-                    myDataTables[myDataTables.Count - 1].Columns.RemoveAt(10);
-                    myDataTables[myDataTables.Count - 1].Columns.RemoveAt(9);
-                    myDataTables[myDataTables.Count - 1].Columns.RemoveAt(8);
-                    myDataTables[myDataTables.Count - 1].Columns.RemoveAt(7);
-                    myDataTables[myDataTables.Count - 1].Columns.RemoveAt(6);
-                    myDataTables[myDataTables.Count - 1].Columns.RemoveAt(5);
-                    myDataTables[myDataTables.Count - 1].Columns.RemoveAt(1);
-
-                    //Remove last row which just have a count
-                    myDataTables[myDataTables.Count - 1].Rows.RemoveAt(myDataTables[myDataTables.Count - 1].Rows.Count - 1);
-
-                    //Store this data in DB
-                    DatabaseUtilitys dbutil = new DatabaseUtilitys();
-                    dbutil.StoreLogFileInDB(myDataTables[myDataTables.Count - 1]);
-
-                    //Create new user control for this file
-                    fileTabControl.TabPages[0].Controls.Add(CreateNewLog(myDataTables[myDataTables.Count - 1]));
-
-                    ////Add TabControl with tabs: Data, Summary, Diagram
-                    //tab.Controls.Add(new TabControl());
-                    //TabControl tabCntrl = (TabControl)tab.Controls[0];
-                    //tabCntrl.Dock = DockStyle.Fill;
-                    //tabCntrl.TabPages.Add(new TabPage());
-                    //tabCntrl.TabPages.Add(new TabPage());
-                    //tabCntrl.TabPages.Add(new TabPage());
-
-                    //var tp_data = (TabPage)tabCntrl.TabPages[0];
-                    //tp_data.Text = "Data";
-                    //DataGridView dgv = new DataGridView();
-                    //dgv.ReadOnly = true;
-                    //dgv.Height = tabCntrl.TabPages[0].Height - 30;
-                    //dgv.Dock = DockStyle.Bottom;
-                    //dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-                    //DataTable dt = GetData(x);
-
-                    //dgv.DataSource = dt;
-                    //tp_data.Controls.Add(dgv);
-
-                    //TabPage tp_summary = (TabPage)tabCntrl.TabPages[1];
-                    //tp_summary.Text = "Summary";
-
-                    //TabPage tp_diagram = (TabPage)tabCntrl.TabPages[2];
-                    //tp_diagram.Text = "Diagram";
-
-
-
-
+                    AddNewLogControl(x);
                 }
-    
 
             }
+            else if (filePath != "")
+            {
+                AddNewLogControl(filePath);
             }
+            else MessageBox.Show("Error: Prepare window for new log /n not a valid file path passed.");
+        }
 
         static String GetDateFromString(string inputText)
         {
@@ -173,7 +175,7 @@ namespace Analyze_alarms
                             case 13:
                                 dt.Columns[x].DataType = typeof(DateTime);
                                 break;
-                        }                       
+                        }
 
                         x++;
                     }
@@ -225,7 +227,7 @@ namespace Analyze_alarms
                         }
                         dr[16] = strFilePath;
                         dt.Rows.Add(dr);
-                        
+
                     }
 
                 }
@@ -233,11 +235,11 @@ namespace Analyze_alarms
             }
         }
 
-        private void SaveRecentFile(string path)
+        private void SaveRecentLogFile(string path)
         {
             //clear all recent list from menu
-            recentProjectsToolStripMenuItem.DropDownItems.Clear();
-            LoadRecentList(); //load list from file
+
+            LoadRecentList("\\Data\\RecentLogs.txt"); //load list from file
             if (!(MRUlist.Contains(path))) //prevent duplication on recent list
                 MRUlist.Enqueue(path); //insert given path into list
                                        //keep list number not exceeded the given value
@@ -245,18 +247,11 @@ namespace Analyze_alarms
             {
                 MRUlist.Dequeue();
             }
-            foreach (string item in MRUlist)
-            {
-                //create new menu for each item in list
-                ToolStripMenuItem fileRecent = new ToolStripMenuItem
-                             (item, null, RecentProject_click);
-                //add the menu to "recent" menu
-                recentProjectsToolStripMenuItem.DropDownItems.Add(fileRecent);
-            }
-            //writing menu list to file
-            //create file called "Recent.txt" located on app folder
+
+            AddRecentMenuItems();
+
             StreamWriter stringToWrite =
-            new StreamWriter(System.Environment.CurrentDirectory + "\\RecentProjects.txt");
+            new StreamWriter(System.Environment.CurrentDirectory + "\\Data\\RecentLogs.txt");
             foreach (string item in MRUlist)
             {
                 stringToWrite.WriteLine(item); //write list to stream
@@ -265,18 +260,34 @@ namespace Analyze_alarms
             stringToWrite.Close(); //close the stream and reclaim memory
         }
 
-        private void LoadRecentList()
+        private void AddRecentMenuItems()
+        {
+            recentLogsToolStripMenuItem.DropDownItems.Clear();
+            foreach (string item in MRUlist)
+            {
+                //create new menu for each item in list
+                ToolStripMenuItem fileRecent = new ToolStripMenuItem
+                             (item, null, RecentLogs_click);
+                //add the menu to "recent" menu
+                //fileRecent.Text = GetDateFromString(item);
+                recentLogsToolStripMenuItem.DropDownItems.Add(fileRecent);
+            }
+        }
+
+        private void LoadRecentList(string pathEnd)
         {//try to load file. If file isn't found, do nothing
             MRUlist.Clear();
             try
             {
                 //read file stream
                 StreamReader listToRead =
-              new StreamReader(System.Environment.CurrentDirectory + "\\RecentProjects.txt");
+              new StreamReader(System.Environment.CurrentDirectory + pathEnd);
                 string line;
                 while ((line = listToRead.ReadLine()) != null) //read each line until end of file
                     MRUlist.Enqueue(line); //insert to list
                 listToRead.Close(); //close the stream
+
+                AddRecentMenuItems();
             }
             catch (Exception) { }
         }
@@ -312,7 +323,7 @@ namespace Analyze_alarms
 
 
             doc.Save(System.Environment.CurrentDirectory + logSettingsFileName);
-            
+
         }
 
         static void UpdateSettingsXML()
@@ -331,8 +342,8 @@ namespace Analyze_alarms
                                 new XAttribute("prodActive", item.isProdActiveLogBit),
                                 new XAttribute("shiftActive", item.isShiftActiveLogBit)
                                 );
-                
-                                
+
+
                 doc.Element("classes").Add(newElement);
             }
 
@@ -344,7 +355,7 @@ namespace Analyze_alarms
         private UC_NewLog CreateNewLog(DataTable data)
         {
             var uc = new UC_NewLog(data);
-            uc.FilterButtonClick += new EventHandler(UC_NewLog_Filter_Button_Click);
+            uc.AnalyzeButtonClick += new EventHandler(UC_NewLog_Filter_Button_Click);
             uc.Dock = DockStyle.Fill;
             //uc.data = data;
 
@@ -373,10 +384,77 @@ namespace Analyze_alarms
             //MessageBox.Show(test);
             //uc.UpdateDataGridView(uc.data);
             var uc = (UC_NewLog)sender;
-            
+
 
         }
 
+        private void OpenLogFile(string filePath = "")
+        {
+            if (filePath == "")
+            {
+                openFileDialog1.Title = "Select files...";
+                openFileDialog1.Filter = "Comma separated files (*.csv)|*.csv";
+                openFileDialog1.Multiselect = true;
+                openFileDialog1.RestoreDirectory = true;
+                DialogResult dRes;
+                dRes = openFileDialog1.ShowDialog();
+
+                if (dRes == DialogResult.OK)
+                {
+                    if (openFileDialog1.FileNames != null)
+                    {
+                        if (CheckIfLogIsDuplicate("", openFileDialog1.FileNames)) return;
+
+                        openedFiles.AddRange(openFileDialog1.FileNames);
+                        PrepareWindowForNewFiles(openFileDialog1.FileNames, "");
+                    }
+                }
+            }
+            else
+            {
+                if (CheckIfLogIsDuplicate(filePath, null)) return;
+
+                openedFiles.Add(filePath);
+                PrepareWindowForNewFiles(null, filePath);
+            }
+
+
+        }
+
+
+        private bool CheckIfLogIsDuplicate(string fileName = "", string[] fileNames = null)
+        {
+            bool duplicates = false;
+
+            if (fileName != "")
+            {
+                foreach (string y in openedFiles)
+                {
+                    if (fileName == y)
+                    {
+                        duplicates = true;
+                    }
+                }
+            }
+
+            if (fileNames != null)
+            {
+                foreach (string x in fileNames)
+                {
+                    foreach (string y in openedFiles)
+                    {
+                        if (x == y)
+                        {
+                            duplicates = true;
+                        }
+                    }
+                }
+            }
+
+            if (duplicates) MessageBox.Show("You can't add files with the same filename as any existing files!");
+
+            return duplicates;
+        }
         #endregion
 
         /// 
@@ -385,41 +463,42 @@ namespace Analyze_alarms
         #region Events
         private void Form1_Load(object sender, EventArgs e)
         {
-            
-            LoadRecentList();
+
+            LoadRecentList("\\Data\\RecentLogs.txt");
             if (!File.Exists(System.Environment.CurrentDirectory + logSettingsFileName)) CreateStandardSettingsXML();
             else
             {
-             try {
-                    logSettings = new List<LogSettings>();
-                foreach (XElement item in XElement.Load(System.Environment.CurrentDirectory + logSettingsFileName).Elements("class"))
+                try
                 {
-                    logSettings.Add(new LogSettings()
+                    logSettings = new List<LogSettings>();
+                    foreach (XElement item in XElement.Load(System.Environment.CurrentDirectory + logSettingsFileName).Elements("class"))
                     {
-                        className = item.Attribute("className").Value,
-                        classNr = int.Parse(item.Attribute("classNr").Value),
-                        classType = int.Parse(item.Attribute("classType").Value),
-                        messageNr = int.Parse(item.Attribute("messageNr").Value),
-                        subClassMember = int.Parse(item.Attribute("subClassMember").Value),
-                        isProdActiveLogBit = (bool)item.Attribute("prodActive"),
-                        isShiftActiveLogBit = (bool)item.Attribute("shiftActive")
-                    });                    
-                }
+                        logSettings.Add(new LogSettings()
+                        {
+                            className = item.Attribute("className").Value,
+                            classNr = int.Parse(item.Attribute("classNr").Value),
+                            classType = int.Parse(item.Attribute("classType").Value),
+                            messageNr = int.Parse(item.Attribute("messageNr").Value),
+                            subClassMember = int.Parse(item.Attribute("subClassMember").Value),
+                            isProdActiveLogBit = (bool)item.Attribute("prodActive"),
+                            isShiftActiveLogBit = (bool)item.Attribute("shiftActive")
+                        });
+                    }
 
 
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 { MessageBox.Show(ex.Message); }
             }
 
         }
-        
+
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Application.Exit();
         }
 
-       
+
 
         private void clearAllToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -427,49 +506,17 @@ namespace Analyze_alarms
             myDataTables.Clear();
             openedFiles.Clear();
 
-            
+
         }
 
         private void openLogsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            openFileDialog1.Title = "Select files...";
-            openFileDialog1.Filter = "Comma separated files (*.csv)|*.csv";
-            openFileDialog1.Multiselect = true;
-            openFileDialog1.RestoreDirectory = true;
-            DialogResult dRes;
-            dRes = openFileDialog1.ShowDialog();
-            if (dRes == DialogResult.OK)
-            {
-                //Check if multiple files
-                if (openFileDialog1.FileNames != null)
-                {
-                    String[] fileNames = openFileDialog1.FileNames;
-                    Boolean duplicates = false;
-                    foreach ( string x in fileNames)
-                    {
-                        foreach ( string y in openedFiles)
-                        {
-                            if (x == y)
-                            {
-                                duplicates = true;                                
-                            }
-                        }
-                    }
-
-                    if (duplicates == true) MessageBox.Show("You can't add files with the same filename as any existing files!");
-                    else
-                    {
-                        openedFiles.AddRange(fileNames);
-                        PrepareWindowForNewFiles(fileNames);
-                    }
-
-                }
-            }
+            OpenLogFile();
         }
 
-        private void RecentProject_click(object sender, EventArgs e)
+        private void RecentLogs_click(object sender, EventArgs e)
         {
-            //richTextBox1.LoadFile(sender.ToString(), RichTextBoxStreamType.PlainText); //same as open menu
+            OpenLogFile(sender.ToString());
         }
         #endregion
 
