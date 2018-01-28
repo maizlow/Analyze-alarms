@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Globalization;
+using LiveCharts;
+using LiveCharts.Wpf;
 
 namespace Analyze_alarms
 {
@@ -14,10 +16,11 @@ namespace Analyze_alarms
     {
         private DataTable data;
         TimeSpan runTime = new TimeSpan();
-
+        private int actualChartType = -1;
         //TODO: This data should be stored for future in DB
         //Summary data for summary tabpage
         private List<Classes.Summary> mySummary = new List<Classes.Summary>();
+        private int nrOfSummaryEntrys;
 
         //First dimension = ClassNr, Second dimension = MessageNr
         private int[] ProdRunning_LB = { 0, 0 };
@@ -30,7 +33,7 @@ namespace Analyze_alarms
             this.data = data;
             InitDataTable(data);
             InitDateTimePickers();
-
+            pictureBox1.Image = new Bitmap(System.Environment.CurrentDirectory + "\\ChartBackGround.jpg");
         }
 
         #region FUNCTIONS
@@ -333,10 +336,13 @@ namespace Analyze_alarms
             TimeSpan TotalRunTime = TimeSpan.Zero;
             TimeSpan TotalTime = TimeSpan.Zero;
 
+            nrOfSummaryEntrys = 0;
+
             foreach (Classes.Summary s in mySummary)
             {
                 TotalAmountOfStops += s.Amount;
                 TotalStopTime += s.stopDuration;
+                nrOfSummaryEntrys++;
             }
 
             lbl_AmountOfStops.Text = TotalAmountOfStops.ToString();
@@ -350,9 +356,201 @@ namespace Analyze_alarms
             dataGridView2.Visible = true;
             panel1.Visible = true;
         }
+
+        private LiveCharts.WinForms.CartesianChart CreateCartChart()
+        {
+            actualChartType = 0;
+            var chart = new LiveCharts.WinForms.CartesianChart();
+            chart.Name = "rowControl";
+
+            var seriesStopDuration = new RowSeries
+            {
+                Title = "Stop duration:",
+                Values = new ChartValues<int> { },
+                ScalesXAt = 0,
+                DataLabels = true,
+                LabelPoint = point => point.X + " minutes",
+                Foreground = System.Windows.Media.Brushes.White,
+                FontFamily = new System.Windows.Media.FontFamily("Microsoft Sans Serif"),
+                FontWeight = System.Windows.FontWeights.Light,
+                FontSize = 11,
+            };
+            var seriesStopAmount = new RowSeries
+            {
+                Title = "Stop amount:",
+                Values = new ChartValues<int> { },
+                ScalesXAt = 1,
+                DataLabels = true,
+                LabelPoint = point => point.X + " times",
+                Foreground = System.Windows.Media.Brushes.White,
+                FontFamily = new System.Windows.Media.FontFamily("Microsoft Sans Serif"),
+                FontWeight = System.Windows.FontWeights.Light,
+                FontSize = 11
+
+            };
+
+            var Y_Axis = new Axis
+            {
+                Title = "Stopcauses",
+                Labels = new List<string>(),
+                LabelsRotation = 15,
+                Separator = new Separator
+                {
+                    Step = 1,
+                    IsEnabled = false
+                },
+                Foreground = System.Windows.Media.Brushes.White,
+                FontFamily = new System.Windows.Media.FontFamily("Microsoft Sans Serif"),
+                FontWeight = System.Windows.FontWeights.Light,
+
+            };
+
+            var X_Axis = new Axis
+            {
+                Title = "Time",
+                Foreground = System.Windows.Media.Brushes.WhiteSmoke,
+                FontFamily = new System.Windows.Media.FontFamily("Microsoft Sans Serif"),
+                FontWeight = System.Windows.FontWeights.Light,
+            };
+
+            var X_Axis2 = new Axis
+            {
+                Title = "Amount",
+                Position = AxisPosition.RightTop,
+                Foreground = System.Windows.Media.Brushes.WhiteSmoke,
+                FontFamily = new System.Windows.Media.FontFamily("Microsoft Sans Serif"),
+                FontWeight = System.Windows.FontWeights.Light,
+            };
+
+            chart.Series.Add(seriesStopDuration);
+            chart.Series.Add(seriesStopAmount);
+            
+            foreach (Classes.Summary s in mySummary)
+            {
+                chart.Series[0].Values.Add(Convert.ToInt32(s.stopDuration.TotalMinutes));
+                chart.Series[1].Values.Add(s.Amount);
+                Y_Axis.Labels.Add(s.MsgText);                
+            }
+
+            chart.AxisX.Add(X_Axis);
+            chart.AxisX.Add(X_Axis2);
+            chart.AxisY.Add(Y_Axis);
+
+            Image img = new Bitmap(System.Environment.CurrentDirectory + "\\ChartBackground.jpg");
+            chart.BackgroundImage = img;
+            chart.BackgroundImageLayout = ImageLayout.Stretch;
+            chart.Dock = DockStyle.Fill;
+            chart.Text = "Stop analysis";
+
+            return chart;
+
+        }
+
+        private LiveCharts.WinForms.PieChart CreatePieChart()
+        {
+            actualChartType = 1;
+            var chart = new LiveCharts.WinForms.PieChart();
+            chart.Name = "pieControl";
+
+            Func<ChartPoint, string> labelPoint = chartPoint =>
+                string.Format("{0} ({1:P})", chartPoint.Y, chartPoint.Participation);
+
+            foreach (Classes.Summary s in mySummary)
+            {
+                var series = new PieSeries
+                {
+                    Title = s.MsgText,
+                    Values = new ChartValues<int> { },
+                    DataLabels = true,
+                    LabelPoint = labelPoint,//point => point.Y + " min",
+                    Foreground = System.Windows.Media.Brushes.Black,
+                    FontFamily = new System.Windows.Media.FontFamily("Microsoft Sans Serif"),
+                    FontWeight = System.Windows.FontWeights.Light,
+                    FontSize = 11,
+                };
+                chart.Series.Add(series);
+                chart.Series[chart.Series.Count - 1].Values.Add(Convert.ToInt32(s.stopDuration.TotalMinutes));
+            }
+
+            chart.LegendLocation = LegendLocation.Right;
+            chart.DefaultLegend.FontFamily = new System.Windows.Media.FontFamily("Microsoft Sans Serif");
+            chart.DefaultLegend.FontWeight = System.Windows.FontWeights.Light;
+            chart.DefaultLegend.Margin = new System.Windows.Thickness(10, 1, 1, 1);
+            chart.DefaultLegend.FontSize = 15;
+            chart.DefaultLegend.Foreground = System.Windows.Media.Brushes.White;
+            Image img = new Bitmap(System.Environment.CurrentDirectory + "\\ChartBackground.jpg");
+            chart.BackgroundImage = img;
+            chart.BackgroundImageLayout = ImageLayout.Stretch;
+            chart.Dock = DockStyle.Fill;
+            chart.Text = "Stop analysis";
+
+            return chart;
+        }
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="chartType">0 = Horizontal bar chart, 1 = Pie chart</param>
+        private void CreateDiagramTab(int chartType)
+        {
+            pictureBox1.Visible = true;
+            tp_Diagram.Controls.RemoveByKey("pieControl");
+            tp_Diagram.Controls.RemoveByKey("rowControl");
+
+            //Horizontal bar chart
+            if (chartType == 0)
+            {
+                Control c = CreateCartChart();
+                c.BringToFront();
+                tp_Diagram.Controls.Add(c);
+            }
+            //Pie chart
+            else if(chartType == 1)
+            {
+                Control c = CreatePieChart();
+                c.BringToFront();
+                tp_Diagram.Controls.Add(c);
+            }
+
+            var btn_Bar = new Button();
+            btn_Bar.Click += new EventHandler(OnBarBtnClick);
+            btn_Bar.Size = new Size(37, 34);
+            var image = new Bitmap(System.Environment.CurrentDirectory + "\\RowChart.png");
+            btn_Bar.Image = new Bitmap(image, 25, 25);
+            btn_Bar.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            btn_Bar.Location = new Point(3, 3);
+
+            var btn_Pie = new Button();
+            btn_Pie.Click += new EventHandler(OnPieBtnClick);
+            btn_Pie.Size = new Size(37, 34);
+            var image2 = new Bitmap(System.Environment.CurrentDirectory + "\\PieChart.png");
+            btn_Pie.Image = new Bitmap(image2, 25, 25);
+            btn_Pie.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            btn_Pie.Location = new Point(btn_Bar.Location.X + btn_Bar.Width + 3, 3);
+
+            tp_Diagram.Controls.Add(btn_Bar);
+            tp_Diagram.Controls.Add(btn_Pie);
+
+            btn_Bar.BringToFront();
+            btn_Pie.BringToFront();
+            label4.Visible = false;
+            pictureBox1.Visible = false;
+
+        }
         #endregion  
 
         #region EVENTS
+
+        void OnBarBtnClick(object sender, EventArgs e)
+        {
+            if (actualChartType != 0) CreateDiagramTab(0);
+        }
+
+        void OnPieBtnClick(object sender, EventArgs e)
+        {
+            if (actualChartType != 1) CreateDiagramTab(1);
+        }
 
         protected void btn_Filter_Click(object sender, EventArgs e)
         {
@@ -401,7 +599,7 @@ namespace Analyze_alarms
             runTime = TimeSpan.Zero;
             AnalyzeLogFile();
             CreateSummaryTab();
-
+            CreateDiagramTab(0);
         }
 
         private void UC_NewLog_Load(object sender, EventArgs e)
