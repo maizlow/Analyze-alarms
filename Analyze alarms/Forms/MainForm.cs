@@ -74,33 +74,7 @@ namespace Analyze_alarms
             //dbutil.StoreLogFileInDB(myDataTables[myDataTables.Count - 1]);
 
             //Create new user control for this file
-            fileTabControl.TabPages[fileTabControl.TabCount - 1].Controls.Add(CreateNewLog(myDataTables[myDataTables.Count - 1]));
-
-            ////Add TabControl with tabs: Data, Summary, Diagram
-            //tab.Controls.Add(new TabControl());
-            //TabControl tabCntrl = (TabControl)tab.Controls[0];
-            //tabCntrl.Dock = DockStyle.Fill;
-            //tabCntrl.TabPages.Add(new TabPage());
-            //tabCntrl.TabPages.Add(new TabPage());
-            //tabCntrl.TabPages.Add(new TabPage());
-
-            //var tp_data = (TabPage)tabCntrl.TabPages[0];
-            //tp_data.Text = "Data";
-            //DataGridView dgv = new DataGridView();
-            //dgv.ReadOnly = true;
-            //dgv.Height = tabCntrl.TabPages[0].Height - 30;
-            //dgv.Dock = DockStyle.Bottom;
-            //dgv.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            //DataTable dt = GetData(x);
-
-            //dgv.DataSource = dt;
-            //tp_data.Controls.Add(dgv);
-
-            //TabPage tp_summary = (TabPage)tabCntrl.TabPages[1];
-            //tp_summary.Text = "Summary";
-
-            //TabPage tp_diagram = (TabPage)tabCntrl.TabPages[2];
-            //tp_diagram.Text = "Diagram";
+            fileTabControl.TabPages[fileTabControl.TabCount - 1].Controls.Add(CreateNewLog(myDataTables[myDataTables.Count - 1]));          
         }
 
         private void PrepareWindowForNewFiles(string[] filePaths = null, string filePath = "")
@@ -385,37 +359,11 @@ namespace Analyze_alarms
         private UC_NewLog CreateNewLog(DataTable data)
         {
             var uc = new UC_NewLog(data);
-            uc.AnalyzeButtonClick += new EventHandler(UC_NewLog_Filter_Button_Click);
+            uc.AnalyzeButtonClick += new EventHandler(UC_NewLog_Analyze_Button_Click);
             uc.Dock = DockStyle.Fill;
             //uc.data = data;
 
             return uc;
-        }
-
-        protected void UC_NewLog_Filter_Button_Click(object sender, EventArgs e)
-        {
-            //string test = "";
-            //var uc = (UC_NewLog)sender;
-            //foreach (DataRow dr in uc.data.Rows)
-            //{
-            //    test = dr[0].ToString();
-            //    break;
-            //}
-            //MessageBox.Show(test);
-            //test = "HEJSAN";
-            //foreach (DataRow dr1 in uc.data.Rows)
-            //{
-            //    dr1[0] = test;
-            //    break;
-            //}
-            //DataRow dr2;
-            //dr2 = uc.data.Rows[0];
-            //test = dr2[0].ToString();
-            //MessageBox.Show(test);
-            //uc.UpdateDataGridView(uc.data);
-            var uc = (UC_NewLog)sender;
-
-
         }
 
         private void OpenLogFile(string filePath = "")
@@ -450,7 +398,6 @@ namespace Analyze_alarms
 
 
         }
-
 
         private bool CheckIfLogIsDuplicate(string fileName = "", string[] fileNames = null)
         {
@@ -504,8 +451,6 @@ namespace Analyze_alarms
             Application.Exit();
         }
 
-
-
         private void clearAllToolStripMenuItem_Click(object sender, EventArgs e)
         {
             fileTabControl.TabPages.Clear();
@@ -524,7 +469,6 @@ namespace Analyze_alarms
         {
             OpenLogFile(sender.ToString());
         }
-        #endregion
 
         private void logsettingsToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -542,5 +486,13 @@ namespace Analyze_alarms
         {
 
         }
+
+        protected void UC_NewLog_Analyze_Button_Click(object sender, EventArgs e)
+        {
+
+        }
+        #endregion
+
+
     }
 }

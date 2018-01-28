@@ -33,6 +33,7 @@ namespace Analyze_alarms
 
         }
 
+        #region FUNCTIONS
         private void InitDateTimePickers()
         {
             dTP_From.Format = DateTimePickerFormat.Custom;
@@ -75,7 +76,8 @@ namespace Analyze_alarms
             }
 
         }
-        private Classes.Summary CheckIfExist(int MsgNr)
+
+        private Classes.Summary CheckIfEntryExist(int MsgNr)
         {
             Classes.Summary sum = mySummary.Find(
             delegate (Classes.Summary summ)
@@ -86,7 +88,7 @@ namespace Analyze_alarms
             return sum;
         }
 
-        private void Analyze()
+        private void AnalyzeLogFile()
         {
             int StopCauseMsgNumber = 0; //Stop message number (To be stored in summaryList)
             string StopCauseMsgText = ""; //Stop message text (To be stored in summaryList)
@@ -142,7 +144,7 @@ namespace Analyze_alarms
                             startIndex = data.Rows.IndexOf(dr);
                             firstStopRow = startIndex + 1; //The first row of data after "Production started" must be treated as a potential stop
                                                            //Check that a stoptime is recorded before duration is recorded.
-                            
+
                         }
                         //Stopped production
                         else
@@ -159,7 +161,7 @@ namespace Analyze_alarms
                                 StopCauseMsgText = "";
                                 //The last row before the Production stopped
                                 lastStopRow = data.Rows.IndexOf(dr) - 1;
-                                
+
                                 runTime += stopTime.Subtract(startTime);
 
                                 //Find next start and calculate stoptime for present stop
@@ -256,7 +258,7 @@ namespace Analyze_alarms
                                                 break;
                                         }
                                     }
-                                    
+
 
                                     ColorDGVRow(stopCauseRow, Color.Yellow, dataGridView1);
                                 }
@@ -264,7 +266,7 @@ namespace Analyze_alarms
                                 if (StopCauseMsgNumber > 0)
                                 {
                                     //Record stopcause in summary
-                                    Classes.Summary sum = CheckIfExist(StopCauseMsgNumber);
+                                    Classes.Summary sum = CheckIfEntryExist(StopCauseMsgNumber);
                                     if (sum == null)
                                     {
                                         Classes.Summary newSum = new Classes.Summary();
@@ -308,7 +310,7 @@ namespace Analyze_alarms
 
         }
 
-        private void CreateOrUpdateSummary()
+        private void CreateSummaryTab()
         {
             //Sort list in decsending order on stopDuration
             mySummary.Sort((a, b) => TimeSpan.Compare(b.stopDuration, a.stopDuration));
@@ -316,10 +318,10 @@ namespace Analyze_alarms
             //be reflected back to the list.
             var bindingList = new BindingList<Classes.Summary>(mySummary);
             var source = new BindingSource(bindingList, null);
-            
+
             dataGridView2.DataSource = source;
             dataGridView2.RowHeadersVisible = false;
-            dataGridView2.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;            
+            dataGridView2.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridView2.Columns[0].HeaderText = "Message nr.";
             dataGridView2.Columns[1].HeaderText = "Message text";
             dataGridView2.Columns[2].HeaderText = "Amount of stops";
@@ -348,32 +350,9 @@ namespace Analyze_alarms
             dataGridView2.Visible = true;
             panel1.Visible = true;
         }
+        #endregion  
 
-        public DateTime dTP_From_Value
-        {
-            get { return dTP_From.Value; }
-            set { dTP_From.Value = dTP_From_Value; }
-        }
-
-        public DateTime dTP_To_Value
-        {
-            get { return dTP_To.Value; }
-            set { dTP_To.Value = dTP_To_Value; }
-        }
-
-        public bool gb_Modify_Visible
-        {
-            get { return gb_Modify.Visible; }
-            set { gb_Modify.Visible = gb_Modify_Visible; }
-        }
-
-        public bool gb_Data_Visible
-        {
-            get { return gb_Data.Visible; }
-            set { gb_Data.Visible = gb_Data_Visible; }
-        }
-
-
+        #region EVENTS
 
         protected void btn_Filter_Click(object sender, EventArgs e)
         {
@@ -420,8 +399,8 @@ namespace Analyze_alarms
             //Local handler code
             mySummary.Clear();
             runTime = TimeSpan.Zero;
-            Analyze();
-            CreateOrUpdateSummary();
+            AnalyzeLogFile();
+            CreateSummaryTab();
 
         }
 
@@ -438,5 +417,7 @@ namespace Analyze_alarms
                 dataGridView2.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.LightGray;
             }
         }
+
+        #endregion
     }
 }
