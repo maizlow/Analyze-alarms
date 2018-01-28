@@ -74,7 +74,7 @@ namespace Analyze_alarms
             //dbutil.StoreLogFileInDB(myDataTables[myDataTables.Count - 1]);
 
             //Create new user control for this file
-            fileTabControl.TabPages[0].Controls.Add(CreateNewLog(myDataTables[myDataTables.Count - 1]));
+            fileTabControl.TabPages[fileTabControl.TabCount - 1].Controls.Add(CreateNewLog(myDataTables[myDataTables.Count - 1]));
 
             ////Add TabControl with tabs: Data, Summary, Diagram
             //tab.Controls.Add(new TabControl());

@@ -310,20 +310,21 @@ namespace Analyze_alarms
 
         private void CreateOrUpdateSummary()
         {
-            DataTable dt = ConvertToDataTable(mySummary);
-
-            dataGridView2.DataSource = dt;
-            dataGridView2.ReadOnly = true;
+            //Sort list in decsending order on stopDuration
+            mySummary.Sort((a, b) => TimeSpan.Compare(b.stopDuration, a.stopDuration));
+            //Bind the list to BindingList and then create a source, this ensure any editing in the DGV will
+            //be reflected back to the list.
+            var bindingList = new BindingList<Classes.Summary>(mySummary);
+            var source = new BindingSource(bindingList, null);
+            
+            dataGridView2.DataSource = source;
             dataGridView2.RowHeadersVisible = false;
             dataGridView2.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;            
             dataGridView2.Columns[0].HeaderText = "Message nr.";
             dataGridView2.Columns[1].HeaderText = "Message text";
             dataGridView2.Columns[2].HeaderText = "Amount of stops";
             dataGridView2.Columns[3].HeaderText = "Total stop time";
-            dataGridView2.Sort(dataGridView2.Columns[3], ListSortDirection.Descending);
             dataGridView2.AllowUserToResizeRows = false;
-            
-        
 
             int TotalAmountOfStops = 0;
             TimeSpan TotalStopTime = TimeSpan.Zero;
@@ -346,14 +347,6 @@ namespace Analyze_alarms
             label3.Visible = false;
             dataGridView2.Visible = true;
             panel1.Visible = true;
-
-            for (int i = 0; i < dataGridView2.Rows.Count; i++)
-            {
-                if (i % 2 == 1)
-                {
-                    ColorDGVRow(i, Color.Red, dataGridView2);
-                }
-            }
         }
 
         public DateTime dTP_From_Value
@@ -425,6 +418,8 @@ namespace Analyze_alarms
                 this.AnalyzeButtonClick(this, e);
 
             //Local handler code
+            mySummary.Clear();
+            runTime = TimeSpan.Zero;
             Analyze();
             CreateOrUpdateSummary();
 
@@ -435,11 +430,7 @@ namespace Analyze_alarms
 
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {
-
-        }
-
+        //Color every other line to increase visibility
         private void dataGridView2_RowPrePaint(object sender, DataGridViewRowPrePaintEventArgs e)
         {
             if (e.RowIndex % 2 == 1)
