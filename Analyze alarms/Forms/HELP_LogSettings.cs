@@ -15,5 +15,10 @@ namespace Analyze_alarms
         {
             InitializeComponent();
         }
+
+        private void HELP_LogSettings_Load(object sender, EventArgs e)
+        {
+            this.Icon = new Icon(System.Environment.CurrentDirectory + "\\logo.ico");
+        }
     }
 }

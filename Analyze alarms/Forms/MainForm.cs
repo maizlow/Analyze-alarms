@@ -440,7 +440,7 @@ namespace Analyze_alarms
         #region Events
         private void Form1_Load(object sender, EventArgs e)
         {
-
+            this.Icon = new Icon(System.Environment.CurrentDirectory + "\\logo.ico");
             LoadRecentList("\\Data\\RecentLogs.txt");
             LoadLogSettingsFromFile();
 

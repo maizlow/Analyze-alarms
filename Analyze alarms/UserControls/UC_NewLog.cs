@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Data;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
-using System.Globalization;
 using LiveCharts;
 using LiveCharts.Wpf;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 
 namespace Analyze_alarms
 {
@@ -21,6 +21,8 @@ namespace Analyze_alarms
         //Summary data for summary tabpage
         private List<Classes.Summary> mySummary = new List<Classes.Summary>();
         private int nrOfSummaryEntrys;
+        private Bitmap chartBitmaps;
+        private LiveCharts.WinForms.CartesianChart mySavedCartesianChart;
 
         //First dimension = ClassNr, Second dimension = MessageNr
         private int[] ProdRunning_LB = { 0, 0 };
@@ -33,7 +35,7 @@ namespace Analyze_alarms
             this.data = data;
             InitDataTable(data);
             InitDateTimePickers();
-            pictureBox1.Image = new Bitmap(System.Environment.CurrentDirectory + "\\ChartBackGround.jpg");
+            pictureBox1.Image = new Bitmap(System.Environment.CurrentDirectory + "\\ChartBackground2.png");
         }
 
         #region FUNCTIONS
@@ -370,7 +372,7 @@ namespace Analyze_alarms
                 ScalesXAt = 0,
                 DataLabels = true,
                 LabelPoint = point => point.X + " minutes",
-                Foreground = System.Windows.Media.Brushes.White,
+                Foreground = System.Windows.Media.Brushes.Black,
                 FontFamily = new System.Windows.Media.FontFamily("Microsoft Sans Serif"),
                 FontWeight = System.Windows.FontWeights.Light,
                 FontSize = 11,
@@ -382,7 +384,7 @@ namespace Analyze_alarms
                 ScalesXAt = 1,
                 DataLabels = true,
                 LabelPoint = point => point.X + " times",
-                Foreground = System.Windows.Media.Brushes.White,
+                Foreground = System.Windows.Media.Brushes.Black,
                 FontFamily = new System.Windows.Media.FontFamily("Microsoft Sans Serif"),
                 FontWeight = System.Windows.FontWeights.Light,
                 FontSize = 11
@@ -399,7 +401,7 @@ namespace Analyze_alarms
                     Step = 1,
                     IsEnabled = false
                 },
-                Foreground = System.Windows.Media.Brushes.White,
+                Foreground = System.Windows.Media.Brushes.Black,
                 FontFamily = new System.Windows.Media.FontFamily("Microsoft Sans Serif"),
                 FontWeight = System.Windows.FontWeights.Light,
 
@@ -408,7 +410,7 @@ namespace Analyze_alarms
             var X_Axis = new Axis
             {
                 Title = "Time",
-                Foreground = System.Windows.Media.Brushes.WhiteSmoke,
+                Foreground = System.Windows.Media.Brushes.Black,
                 FontFamily = new System.Windows.Media.FontFamily("Microsoft Sans Serif"),
                 FontWeight = System.Windows.FontWeights.Light,
             };
@@ -417,7 +419,7 @@ namespace Analyze_alarms
             {
                 Title = "Amount",
                 Position = AxisPosition.RightTop,
-                Foreground = System.Windows.Media.Brushes.WhiteSmoke,
+                Foreground = System.Windows.Media.Brushes.Black,
                 FontFamily = new System.Windows.Media.FontFamily("Microsoft Sans Serif"),
                 FontWeight = System.Windows.FontWeights.Light,
             };
@@ -436,7 +438,7 @@ namespace Analyze_alarms
             chart.AxisX.Add(X_Axis2);
             chart.AxisY.Add(Y_Axis);
 
-            Image img = new Bitmap(System.Environment.CurrentDirectory + "\\ChartBackground.jpg");
+            Image img = new Bitmap(System.Environment.CurrentDirectory + "\\ChartBackground2.png");
             chart.BackgroundImage = img;
             chart.BackgroundImageLayout = ImageLayout.Stretch;
             chart.Dock = DockStyle.Fill;
@@ -461,8 +463,8 @@ namespace Analyze_alarms
                 {
                     Title = s.MsgText,
                     Values = new ChartValues<int> { },
-                    DataLabels = true,
-                    LabelPoint = labelPoint,//point => point.Y + " min",
+                    DataLabels = false,
+                    //LabelPoint = labelPoint,//point => point.Y + " min",
                     Foreground = System.Windows.Media.Brushes.Black,
                     FontFamily = new System.Windows.Media.FontFamily("Microsoft Sans Serif"),
                     FontWeight = System.Windows.FontWeights.Light,
@@ -477,24 +479,90 @@ namespace Analyze_alarms
             chart.DefaultLegend.FontWeight = System.Windows.FontWeights.Light;
             chart.DefaultLegend.Margin = new System.Windows.Thickness(10, 1, 1, 1);
             chart.DefaultLegend.FontSize = 15;
-            chart.DefaultLegend.Foreground = System.Windows.Media.Brushes.White;
-            Image img = new Bitmap(System.Environment.CurrentDirectory + "\\ChartBackground.jpg");
+            chart.DefaultLegend.Foreground = System.Windows.Media.Brushes.Black;
+            Image img = new Bitmap(System.Environment.CurrentDirectory + "\\ChartBackground2.png");
             chart.BackgroundImage = img;
             chart.BackgroundImageLayout = ImageLayout.Stretch;
             chart.Dock = DockStyle.Fill;
             chart.Text = "Stop analysis";
 
+            
+
             return chart;
         }
 
+        private static Bitmap ResizeImage(Image image, int width, int height)
+        {
+            var destRect = new Rectangle(0, 0, width, height);
+            var destImage = new Bitmap(width, height);
+
+            destImage.SetResolution(image.HorizontalResolution, image.VerticalResolution);
+
+            using (var graphics = Graphics.FromImage(destImage))
+            {
+                graphics.CompositingMode = CompositingMode.SourceCopy;
+                graphics.CompositingQuality = CompositingQuality.HighQuality;
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.SmoothingMode = SmoothingMode.HighQuality;
+                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                using (var wrapMode = new ImageAttributes())
+                {
+                    wrapMode.SetWrapMode(WrapMode.TileFlipXY);
+                    graphics.DrawImage(image, destRect, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, wrapMode);
+                }
+            }
+
+            return destImage;
+        }
+
+        private Bitmap BitmapFromChart(Control myChart)
+        {
+            Bitmap bmp = new Bitmap(myChart.ClientSize.Width, myChart.ClientSize.Height);
+           
+            myChart.DrawToBitmap(bmp, myChart.ClientRectangle);
+
+            int new_width = 1024;
+            double aspect_ratio = (double)myChart.Height / (double)myChart.Width;
+            double new_height = aspect_ratio * (double)new_width;
+            
+            bmp = ResizeImage((Image)bmp, new_width, (int)new_height);
+            
+            return bmp;
+        }
+
+        private void CreatePDF_Report()
+        {
+            
+            var generator = new Classes.ReportGenerator("ALARM ANALYSIS " + DateTime.Today.ToShortDateString());
+
+            Control[] temp = tp_Diagram.Controls.Find("rowControl", false);
+            chartBitmaps = BitmapFromChart(temp[0]);
+            var img = (Image)chartBitmaps;
+
+            generator.charts = img;
+            var openLogo = new OpenFileDialog();
+            //string path;ALARM ANALYSIS " + DateTime.Today.ToShortDateString()
+            //if (openLogo.ShowDialog() == DialogResult.OK)
+            //{
+            //    path = openLogo.FileName;
+            //    generator.NewCustomerLogo(path);
+            //}
+            //else return;
+            var filepath = generator.Generate(false);
+
+            Process.Start(filepath);
+        }
 
         /// <summary>
-        /// 
+        /// Create a new diagram tab
         /// </summary>
         /// <param name="chartType">0 = Horizontal bar chart, 1 = Pie chart</param>
         private void CreateDiagramTab(int chartType)
         {
             pictureBox1.Visible = true;
+
+            //TODO: Possible memory leak when swapping chart type.
             tp_Diagram.Controls.RemoveByKey("pieControl");
             tp_Diagram.Controls.RemoveByKey("rowControl");
 
@@ -616,6 +684,16 @@ namespace Analyze_alarms
             }
         }
 
+        private void tabControl1_TabIndexChanged(object sender, EventArgs e)
+        {
+            if (tabControl1.TabIndex == 3)
+                CreatePDF_Report();
+        }
         #endregion
+
+        private void tp_Report_Click(object sender, EventArgs e)
+        {
+            CreatePDF_Report();
+        }
     }
 }

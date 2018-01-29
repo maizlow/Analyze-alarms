@@ -150,6 +150,7 @@
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Hide;
             this.Text = "Log settings help";
             this.TopMost = true;
+            this.Load += new System.EventHandler(this.HELP_LogSettings_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 

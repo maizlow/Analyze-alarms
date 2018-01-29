@@ -56,9 +56,9 @@
             this.label3 = new System.Windows.Forms.Label();
             this.tp_Diagram = new System.Windows.Forms.TabPage();
             this.label4 = new System.Windows.Forms.Label();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.tp_Report = new System.Windows.Forms.TabPage();
             this.backgroundWorker2 = new System.ComponentModel.BackgroundWorker();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.gb_Modify.SuspendLayout();
             this.gb_Data.SuspendLayout();
@@ -115,6 +115,7 @@
             // 
             // btn_Analyze
             // 
+            this.btn_Analyze.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btn_Analyze.FlatStyle = System.Windows.Forms.FlatStyle.Popup;
             this.btn_Analyze.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btn_Analyze.Location = new System.Drawing.Point(473, 19);
@@ -193,6 +194,7 @@
             this.tabControl1.SelectedIndex = 0;
             this.tabControl1.Size = new System.Drawing.Size(601, 500);
             this.tabControl1.TabIndex = 6;
+            this.tabControl1.TabIndexChanged += new System.EventHandler(this.tabControl1_TabIndexChanged);
             // 
             // tp_Data
             // 
@@ -385,15 +387,6 @@
             this.label4.TabIndex = 1;
             this.label4.Text = "No analysis done.";
             // 
-            // tp_Report
-            // 
-            this.tp_Report.Location = new System.Drawing.Point(4, 22);
-            this.tp_Report.Name = "tp_Report";
-            this.tp_Report.Size = new System.Drawing.Size(593, 474);
-            this.tp_Report.TabIndex = 3;
-            this.tp_Report.Text = "Report";
-            this.tp_Report.UseVisualStyleBackColor = true;
-            // 
             // pictureBox1
             // 
             this.pictureBox1.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -402,6 +395,16 @@
             this.pictureBox1.Size = new System.Drawing.Size(593, 474);
             this.pictureBox1.TabIndex = 2;
             this.pictureBox1.TabStop = false;
+            // 
+            // tp_Report
+            // 
+            this.tp_Report.Location = new System.Drawing.Point(4, 22);
+            this.tp_Report.Name = "tp_Report";
+            this.tp_Report.Size = new System.Drawing.Size(593, 474);
+            this.tp_Report.TabIndex = 3;
+            this.tp_Report.Text = "Report";
+            this.tp_Report.UseVisualStyleBackColor = true;
+            this.tp_Report.Click += new System.EventHandler(this.tp_Report_Click);
             // 
             // UC_NewLog
             // 
