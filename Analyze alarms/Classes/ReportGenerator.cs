@@ -29,7 +29,7 @@ namespace Analyze_alarms.Classes
         private static readonly double BodyRectHeight = Font.GetHeight() * 7 + SectionPadding;
         private static XImage customerLogoImage;
         private string Header = "Header";
-        public Image charts;
+        public Image rowChart, pieChart;
 
         public ReportGenerator(string HeaderText = "Alarm analysis")
         {
@@ -50,21 +50,24 @@ namespace Analyze_alarms.Classes
             var firstPage_gfx = XGraphics.FromPdfPage(firstPage);
             GenerateFirstPage(firstPage_gfx, useCustomerLogo);
 
-            //foreach(Bitmap b in charts)
-            //{
-            //    //Chart page
-            //    var chartPage = document.AddPage();
-            //    chartPage.Size = PageSize;
-            //    chartPage.Orientation = PageOrientation.Landscape;
-            //    var chartPage_gfx = XGraphics.FromPdfPage(chartPage);
-            //    GenerateChartPage(chartPage_gfx, b);
-            //}
-            //Chart page
-            var chartPage = document.AddPage();
-            chartPage.Size = PageSize;
-            chartPage.Orientation = PageOrientation.Landscape;
-            var chartPage_gfx = XGraphics.FromPdfPage(chartPage);
-            GenerateChartPage(chartPage_gfx, charts);
+            if (rowChart != null)
+            {
+                var chartPage = document.AddPage();
+                chartPage.Size = PageSize;
+                chartPage.Orientation = PageOrientation.Landscape;
+                var chartPage_gfx = XGraphics.FromPdfPage(chartPage);
+                GenerateChartPage(chartPage_gfx, rowChart);
+            }
+
+            if (pieChart != null)
+            {
+                var piePage = document.AddPage();
+                piePage.Size = PageSize;
+                piePage.Orientation = PageOrientation.Landscape;
+                var piePage_gfx = XGraphics.FromPdfPage(piePage);
+                GenerateChartPage(piePage_gfx, pieChart);
+            }
+
 
             var filename = @"Analyzed log report " + DateTime.Today.ToShortDateString() + ".pdf";
             document.Save(filename);
@@ -118,7 +121,7 @@ namespace Analyze_alarms.Classes
             //LogoRect = new XRect(PageWidth / 2 - ABECELogo.PointWidth / 2, Margin, ABECELogo.PointWidth, ABECELogo.PointHeight);
                         
             XImage ximg = XImage.FromGdiPlusImage(chart);
-            gfx.DrawImage(ximg, PageWidthLandscape / 2 - ximg.PointWidth / 2, Margin);
+            gfx.DrawImage(ximg, PageWidthLandscape / 2 - ximg.PointWidth / 2, PageWidth / 2 - ximg.PointHeight / 2);
         }
 
         private static XTextFormatter CreateTextFormatter(XGraphics gfx, XParagraphAlignment alignment = XParagraphAlignment.Left)

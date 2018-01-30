@@ -9,6 +9,7 @@ using LiveCharts;
 using LiveCharts.Wpf;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Threading;
 
 namespace Analyze_alarms
 {
@@ -23,6 +24,9 @@ namespace Analyze_alarms
         private int nrOfSummaryEntrys;
         private Bitmap chartBitmaps;
         private LiveCharts.WinForms.CartesianChart mySavedCartesianChart;
+        private bool AnalysisDone = false;
+        //private TabPage tp_Diagram;
+
 
         //First dimension = ClassNr, Second dimension = MessageNr
         private int[] ProdRunning_LB = { 0, 0 };
@@ -357,6 +361,8 @@ namespace Analyze_alarms
             label3.Visible = false;
             dataGridView2.Visible = true;
             panel1.Visible = true;
+
+            AnalysisDone = true;
         }
 
         private LiveCharts.WinForms.CartesianChart CreateCartChart()
@@ -533,74 +539,79 @@ namespace Analyze_alarms
 
         private void CreatePDF_Report()
         {
-            
-            var generator = new Classes.ReportGenerator("ALARM ANALYSIS " + DateTime.Today.ToShortDateString());
+            if (AnalysisDone)
+            {
+                var generator = new Classes.ReportGenerator("ALARM ANALYSIS " + DateTime.Today.ToShortDateString());
 
-            Control[] temp = tp_Diagram.Controls.Find("rowControl", false);
-            chartBitmaps = BitmapFromChart(temp[0]);
-            var img = (Image)chartBitmaps;
+                Control[] rowChart = tp_Diagram.Controls.Find("rowControl", false);
+                Control[] pieChart = tp_Diagram.Controls.Find("pieControl", false);
 
-            generator.charts = img;
-            var openLogo = new OpenFileDialog();
-            //string path;ALARM ANALYSIS " + DateTime.Today.ToShortDateString()
-            //if (openLogo.ShowDialog() == DialogResult.OK)
-            //{
-            //    path = openLogo.FileName;
-            //    generator.NewCustomerLogo(path);
-            //}
-            //else return;
-            var filepath = generator.Generate(false);
+                if (rowChart != null)
+                    generator.rowChart = (Image)BitmapFromChart(rowChart[0]);
 
-            Process.Start(filepath);
+                if (pieChart != null)
+                    generator.pieChart = (Image)BitmapFromChart(pieChart[0]);              
+
+                var openLogo = new OpenFileDialog();
+                //string path;ALARM ANALYSIS " + DateTime.Today.ToShortDateString()
+                //if (openLogo.ShowDialog() == DialogResult.OK)
+                //{
+                //    path = openLogo.FileName;
+                //    generator.NewCustomerLogo(path);
+                //}
+                //else return;
+                var filepath = generator.Generate(false);
+
+                Process.Start(filepath);
+            }
         }
 
         /// <summary>
         /// Create a new diagram tab
         /// </summary>
         /// <param name="chartType">0 = Horizontal bar chart, 1 = Pie chart</param>
-        private void CreateDiagramTab(int chartType)
+        private void CreateDiagramTab()
         {
             pictureBox1.Visible = true;
 
-            //TODO: Possible memory leak when swapping chart type.
-            tp_Diagram.Controls.RemoveByKey("pieControl");
-            tp_Diagram.Controls.RemoveByKey("rowControl");
-
             //Horizontal bar chart
-            if (chartType == 0)
+            if (!tp_Diagram.Controls.ContainsKey("rowControl"))
             {
                 Control c = CreateCartChart();
                 c.BringToFront();
                 tp_Diagram.Controls.Add(c);
             }
             //Pie chart
-            else if(chartType == 1)
+            if (!tp_Diagram.Controls.ContainsKey("pieControl"))
             {
                 Control c = CreatePieChart();
                 c.BringToFront();
                 tp_Diagram.Controls.Add(c);
             }
 
-            var btn_Bar = new Button();
-            btn_Bar.Click += new EventHandler(OnBarBtnClick);
-            btn_Bar.Size = new Size(37, 34);
+            var btn_Row = new Button();
+            btn_Row.Name = "btn_Row";
+            btn_Row.Click += new EventHandler(OnBarBtnClick);
+            btn_Row.Size = new Size(37, 34);
             var image = new Bitmap(System.Environment.CurrentDirectory + "\\RowChart.png");
-            btn_Bar.Image = new Bitmap(image, 25, 25);
-            btn_Bar.Anchor = AnchorStyles.Top | AnchorStyles.Left;
-            btn_Bar.Location = new Point(3, 3);
+            btn_Row.Image = new Bitmap(image, 25, 25);
+            btn_Row.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+            btn_Row.Location = new Point(3, 3);
 
             var btn_Pie = new Button();
+            btn_Pie.Name = "btn_Pie";
             btn_Pie.Click += new EventHandler(OnPieBtnClick);
             btn_Pie.Size = new Size(37, 34);
             var image2 = new Bitmap(System.Environment.CurrentDirectory + "\\PieChart.png");
             btn_Pie.Image = new Bitmap(image2, 25, 25);
             btn_Pie.Anchor = AnchorStyles.Top | AnchorStyles.Left;
-            btn_Pie.Location = new Point(btn_Bar.Location.X + btn_Bar.Width + 3, 3);
+            btn_Pie.Location = new Point(btn_Row.Location.X + btn_Row.Width + 3, 3);
 
-            tp_Diagram.Controls.Add(btn_Bar);
+            tp_Diagram.Controls.Add(btn_Row);
             tp_Diagram.Controls.Add(btn_Pie);
 
-            btn_Bar.BringToFront();
+            tp_Diagram.Controls[tp_Diagram.Controls.IndexOfKey("rowControl")].BringToFront();
+            btn_Row.BringToFront();
             btn_Pie.BringToFront();
             label4.Visible = false;
             pictureBox1.Visible = false;
@@ -612,12 +623,24 @@ namespace Analyze_alarms
 
         void OnBarBtnClick(object sender, EventArgs e)
         {
-            if (actualChartType != 0) CreateDiagramTab(0);
+            if (tp_Diagram.Controls.ContainsKey("rowControl") && tp_Diagram.Controls.ContainsKey("pieControl"))
+            {
+                tp_Diagram.Controls[tp_Diagram.Controls.IndexOfKey("rowControl")].BringToFront();
+                tp_Diagram.Controls[tp_Diagram.Controls.IndexOfKey("pieControl")].SendToBack();
+                tp_Diagram.Controls[tp_Diagram.Controls.IndexOfKey("btn_Row")].BringToFront();
+                tp_Diagram.Controls[tp_Diagram.Controls.IndexOfKey("btn_Pie")].BringToFront();
+            }
         }
 
         void OnPieBtnClick(object sender, EventArgs e)
         {
-            if (actualChartType != 1) CreateDiagramTab(1);
+            if (tp_Diagram.Controls.ContainsKey("rowControl") && tp_Diagram.Controls.ContainsKey("pieControl"))
+            {
+                tp_Diagram.Controls[tp_Diagram.Controls.IndexOfKey("pieControl")].BringToFront();
+                tp_Diagram.Controls[tp_Diagram.Controls.IndexOfKey("rowControl")].SendToBack();
+                tp_Diagram.Controls[tp_Diagram.Controls.IndexOfKey("btn_Row")].BringToFront();
+                tp_Diagram.Controls[tp_Diagram.Controls.IndexOfKey("btn_Pie")].BringToFront();
+            }
         }
 
         protected void btn_Filter_Click(object sender, EventArgs e)
@@ -667,7 +690,7 @@ namespace Analyze_alarms
             runTime = TimeSpan.Zero;
             AnalyzeLogFile();
             CreateSummaryTab();
-            CreateDiagramTab(0);
+            CreateDiagramTab();
         }
 
         private void UC_NewLog_Load(object sender, EventArgs e)
