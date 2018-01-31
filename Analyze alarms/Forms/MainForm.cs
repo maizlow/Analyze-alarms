@@ -24,9 +24,7 @@ namespace Analyze_alarms
         const string logSettingsFileName = "\\logsettings.xml";
 
         public static List<LogSettings> logSettings;
-
-
-
+        
         public MainForm()
         {
             InitializeComponent();
@@ -37,7 +35,11 @@ namespace Analyze_alarms
         /// All generic functions here
         /// 
         #region Functions
+        
+        public void ResizeForm()
+        {
 
+        }
 
         private void AddNewLogControl(string filePath)
         {
@@ -358,7 +360,7 @@ namespace Analyze_alarms
 
         private UC_NewLog CreateNewLog(DataTable data)
         {
-            var uc = new UC_NewLog(data);
+            var uc = new UC_NewLog(this, data);
             uc.AnalyzeButtonClick += new EventHandler(UC_NewLog_Analyze_Button_Click);
             uc.Dock = DockStyle.Fill;
             //uc.data = data;

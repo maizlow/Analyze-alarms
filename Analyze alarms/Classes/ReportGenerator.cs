@@ -110,7 +110,7 @@ namespace Analyze_alarms.Classes
                 rectHeight = font.GetHeight() + font.GetHeight();
             else rectHeight = font.GetHeight();
 
-            var rect = new XRect(Margin, LogoRect.Bottom + 5, Width, rectHeight);
+            var rect = new XRect(Margin, LogoRect.Bottom + 150, Width, rectHeight);
             
             CreateTextFormatter(gfx, XParagraphAlignment.Center).DrawString(Header, font, TextBrush, rect, XStringFormats.TopLeft);
 

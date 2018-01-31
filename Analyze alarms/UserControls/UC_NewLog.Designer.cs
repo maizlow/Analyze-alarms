@@ -57,8 +57,8 @@
             this.tp_Diagram = new System.Windows.Forms.TabPage();
             this.label4 = new System.Windows.Forms.Label();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.tp_Report = new System.Windows.Forms.TabPage();
             this.backgroundWorker2 = new System.ComponentModel.BackgroundWorker();
+            this.textBox1 = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.gb_Modify.SuspendLayout();
             this.gb_Data.SuspendLayout();
@@ -100,6 +100,7 @@
             // 
             this.gb_Modify.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.gb_Modify.Controls.Add(this.textBox1);
             this.gb_Modify.Controls.Add(this.btn_Analyze);
             this.gb_Modify.Controls.Add(this.btn_Filter);
             this.gb_Modify.Controls.Add(this.label1);
@@ -187,14 +188,13 @@
             this.tabControl1.Controls.Add(this.tp_Data);
             this.tabControl1.Controls.Add(this.tp_Summary);
             this.tabControl1.Controls.Add(this.tp_Diagram);
-            this.tabControl1.Controls.Add(this.tp_Report);
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Margin = new System.Windows.Forms.Padding(0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
             this.tabControl1.Size = new System.Drawing.Size(601, 500);
             this.tabControl1.TabIndex = 6;
-            this.tabControl1.TabIndexChanged += new System.EventHandler(this.tabControl1_TabIndexChanged);
+            this.tabControl1.SelectedIndexChanged += new System.EventHandler(this.tabControl1_SelectedIndexChanged);
             // 
             // tp_Data
             // 
@@ -396,15 +396,12 @@
             this.pictureBox1.TabIndex = 2;
             this.pictureBox1.TabStop = false;
             // 
-            // tp_Report
+            // textBox1
             // 
-            this.tp_Report.Location = new System.Drawing.Point(4, 22);
-            this.tp_Report.Name = "tp_Report";
-            this.tp_Report.Size = new System.Drawing.Size(593, 474);
-            this.tp_Report.TabIndex = 3;
-            this.tp_Report.Text = "Report";
-            this.tp_Report.UseVisualStyleBackColor = true;
-            this.tp_Report.Click += new System.EventHandler(this.tp_Report_Click);
+            this.textBox1.Location = new System.Drawing.Point(231, 46);
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(244, 20);
+            this.textBox1.TabIndex = 9;
             // 
             // UC_NewLog
             // 
@@ -463,8 +460,8 @@
         private System.Windows.Forms.Label lbl_StopTime;
         private System.Windows.Forms.DataGridView dataGridView2;
         private System.Windows.Forms.Panel panel1;
-        private System.Windows.Forms.TabPage tp_Report;
         private System.ComponentModel.BackgroundWorker backgroundWorker2;
         private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.TextBox textBox1;
     }
 }

@@ -15,27 +15,44 @@ namespace Analyze_alarms
 {
     public partial class UC_NewLog : UserControl
     {
+        MainForm parent;
         private DataTable data;
         TimeSpan runTime = new TimeSpan();
-        private int actualChartType = -1;
         //TODO: This data should be stored for future in DB
         //Summary data for summary tabpage
         private List<Classes.Summary> mySummary = new List<Classes.Summary>();
         private int nrOfSummaryEntrys;
-        private Bitmap chartBitmaps;
-        private LiveCharts.WinForms.CartesianChart mySavedCartesianChart;
-        private bool AnalysisDone = false;
-        //private TabPage tp_Diagram;
+        private TabPage tp_Report;
+        private Classes.Charts myCharts = new Classes.Charts();
+        public Control rowChart, pieChart;
+        Form paintForm;
+        Classes.ReportGenerator generator;
+        private bool tb_Header_Edited, tb_ReportFrom_Edited, tb_ReportBy_Edited, tb_FreeText_Edited;
+        public string tb_Header_Text, tb_ReportFrom_Text, tb_ReportBy_Text, tb_FreeText_Text;
+        public DateTime dtp_ReportDate;
+        public bool chk_RowChart_Checked, chk_PieChart_Checked, chk_Summary_Checked;
 
+        private bool paintFormCompleted;
+        public bool PaintFormCompleted
+        {
+            set
+            {
+                paintFormCompleted = value;
+                paintChartFormDone(ref generator);
+            }
+
+        }
 
         //First dimension = ClassNr, Second dimension = MessageNr
         private int[] ProdRunning_LB = { 0, 0 };
         private int[] ShiftActive_LB = { 0, 0 };
 
-        public UC_NewLog(DataTable data)
+        //Constructor
+        public UC_NewLog(MainForm parent, DataTable data)
         {
             InitializeComponent();
 
+            this.Parent = parent;
             this.data = data;
             InitDataTable(data);
             InitDateTimePickers();
@@ -361,140 +378,6 @@ namespace Analyze_alarms
             label3.Visible = false;
             dataGridView2.Visible = true;
             panel1.Visible = true;
-
-            AnalysisDone = true;
-        }
-
-        private LiveCharts.WinForms.CartesianChart CreateCartChart()
-        {
-            actualChartType = 0;
-            var chart = new LiveCharts.WinForms.CartesianChart();
-            chart.Name = "rowControl";
-
-            var seriesStopDuration = new RowSeries
-            {
-                Title = "Stop duration:",
-                Values = new ChartValues<int> { },
-                ScalesXAt = 0,
-                DataLabels = true,
-                LabelPoint = point => point.X + " minutes",
-                Foreground = System.Windows.Media.Brushes.Black,
-                FontFamily = new System.Windows.Media.FontFamily("Microsoft Sans Serif"),
-                FontWeight = System.Windows.FontWeights.Light,
-                FontSize = 11,
-            };
-            var seriesStopAmount = new RowSeries
-            {
-                Title = "Stop amount:",
-                Values = new ChartValues<int> { },
-                ScalesXAt = 1,
-                DataLabels = true,
-                LabelPoint = point => point.X + " times",
-                Foreground = System.Windows.Media.Brushes.Black,
-                FontFamily = new System.Windows.Media.FontFamily("Microsoft Sans Serif"),
-                FontWeight = System.Windows.FontWeights.Light,
-                FontSize = 11
-
-            };
-
-            var Y_Axis = new Axis
-            {
-                Title = "Stopcauses",
-                Labels = new List<string>(),
-                LabelsRotation = 15,
-                Separator = new Separator
-                {
-                    Step = 1,
-                    IsEnabled = false
-                },
-                Foreground = System.Windows.Media.Brushes.Black,
-                FontFamily = new System.Windows.Media.FontFamily("Microsoft Sans Serif"),
-                FontWeight = System.Windows.FontWeights.Light,
-
-            };
-
-            var X_Axis = new Axis
-            {
-                Title = "Time",
-                Foreground = System.Windows.Media.Brushes.Black,
-                FontFamily = new System.Windows.Media.FontFamily("Microsoft Sans Serif"),
-                FontWeight = System.Windows.FontWeights.Light,
-            };
-
-            var X_Axis2 = new Axis
-            {
-                Title = "Amount",
-                Position = AxisPosition.RightTop,
-                Foreground = System.Windows.Media.Brushes.Black,
-                FontFamily = new System.Windows.Media.FontFamily("Microsoft Sans Serif"),
-                FontWeight = System.Windows.FontWeights.Light,
-            };
-
-            chart.Series.Add(seriesStopDuration);
-            chart.Series.Add(seriesStopAmount);
-            
-            foreach (Classes.Summary s in mySummary)
-            {
-                chart.Series[0].Values.Add(Convert.ToInt32(s.stopDuration.TotalMinutes));
-                chart.Series[1].Values.Add(s.Amount);
-                Y_Axis.Labels.Add(s.MsgText);                
-            }
-
-            chart.AxisX.Add(X_Axis);
-            chart.AxisX.Add(X_Axis2);
-            chart.AxisY.Add(Y_Axis);
-
-            Image img = new Bitmap(System.Environment.CurrentDirectory + "\\ChartBackground2.png");
-            chart.BackgroundImage = img;
-            chart.BackgroundImageLayout = ImageLayout.Stretch;
-            chart.Dock = DockStyle.Fill;
-            chart.Text = "Stop analysis";
-
-            return chart;
-
-        }
-
-        private LiveCharts.WinForms.PieChart CreatePieChart()
-        {
-            actualChartType = 1;
-            var chart = new LiveCharts.WinForms.PieChart();
-            chart.Name = "pieControl";
-
-            Func<ChartPoint, string> labelPoint = chartPoint =>
-                string.Format("{0} ({1:P})", chartPoint.Y, chartPoint.Participation);
-
-            foreach (Classes.Summary s in mySummary)
-            {
-                var series = new PieSeries
-                {
-                    Title = s.MsgText,
-                    Values = new ChartValues<int> { },
-                    DataLabels = false,
-                    //LabelPoint = labelPoint,//point => point.Y + " min",
-                    Foreground = System.Windows.Media.Brushes.Black,
-                    FontFamily = new System.Windows.Media.FontFamily("Microsoft Sans Serif"),
-                    FontWeight = System.Windows.FontWeights.Light,
-                    FontSize = 11,
-                };
-                chart.Series.Add(series);
-                chart.Series[chart.Series.Count - 1].Values.Add(Convert.ToInt32(s.stopDuration.TotalMinutes));
-            }
-
-            chart.LegendLocation = LegendLocation.Right;
-            chart.DefaultLegend.FontFamily = new System.Windows.Media.FontFamily("Microsoft Sans Serif");
-            chart.DefaultLegend.FontWeight = System.Windows.FontWeights.Light;
-            chart.DefaultLegend.Margin = new System.Windows.Thickness(10, 1, 1, 1);
-            chart.DefaultLegend.FontSize = 15;
-            chart.DefaultLegend.Foreground = System.Windows.Media.Brushes.Black;
-            Image img = new Bitmap(System.Environment.CurrentDirectory + "\\ChartBackground2.png");
-            chart.BackgroundImage = img;
-            chart.BackgroundImageLayout = ImageLayout.Stretch;
-            chart.Dock = DockStyle.Fill;
-            chart.Text = "Stop analysis";
-
-            
-
-            return chart;
         }
 
         private static Bitmap ResizeImage(Image image, int width, int height)
@@ -525,45 +408,16 @@ namespace Analyze_alarms
         private Bitmap BitmapFromChart(Control myChart)
         {
             Bitmap bmp = new Bitmap(myChart.ClientSize.Width, myChart.ClientSize.Height);
-           
+
             myChart.DrawToBitmap(bmp, myChart.ClientRectangle);
 
             int new_width = 1024;
             double aspect_ratio = (double)myChart.Height / (double)myChart.Width;
             double new_height = aspect_ratio * (double)new_width;
-            
+
             bmp = ResizeImage((Image)bmp, new_width, (int)new_height);
-            
+
             return bmp;
-        }
-
-        private void CreatePDF_Report()
-        {
-            if (AnalysisDone)
-            {
-                var generator = new Classes.ReportGenerator("ALARM ANALYSIS " + DateTime.Today.ToShortDateString());
-
-                Control[] rowChart = tp_Diagram.Controls.Find("rowControl", false);
-                Control[] pieChart = tp_Diagram.Controls.Find("pieControl", false);
-
-                if (rowChart != null)
-                    generator.rowChart = (Image)BitmapFromChart(rowChart[0]);
-
-                if (pieChart != null)
-                    generator.pieChart = (Image)BitmapFromChart(pieChart[0]);              
-
-                var openLogo = new OpenFileDialog();
-                //string path;ALARM ANALYSIS " + DateTime.Today.ToShortDateString()
-                //if (openLogo.ShowDialog() == DialogResult.OK)
-                //{
-                //    path = openLogo.FileName;
-                //    generator.NewCustomerLogo(path);
-                //}
-                //else return;
-                var filepath = generator.Generate(false);
-
-                Process.Start(filepath);
-            }
         }
 
         /// <summary>
@@ -577,14 +431,14 @@ namespace Analyze_alarms
             //Horizontal bar chart
             if (!tp_Diagram.Controls.ContainsKey("rowControl"))
             {
-                Control c = CreateCartChart();
+                Control c = myCharts.CreateRowChart(mySummary);
                 c.BringToFront();
                 tp_Diagram.Controls.Add(c);
             }
             //Pie chart
             if (!tp_Diagram.Controls.ContainsKey("pieControl"))
             {
-                Control c = CreatePieChart();
+                Control c = myCharts.CreatePieChart(mySummary);
                 c.BringToFront();
                 tp_Diagram.Controls.Add(c);
             }
@@ -617,11 +471,300 @@ namespace Analyze_alarms
             pictureBox1.Visible = false;
 
         }
-        #endregion  
+
+        private void CreateReportTab()
+        {
+            Size controlSize = new Size(244, 20);
+            Font fontStyleBold = new Font(Label.DefaultFont, FontStyle.Bold);
+
+            //Tab page
+            tp_Report = new TabPage();
+            tp_Report.Text = "Report";
+            tabControl1.TabPages.Add(tp_Report);
+
+            //Header label
+            var lbl_Header = new Label();
+            lbl_Header.Text = "Report header";
+            lbl_Header.Font = fontStyleBold;
+            lbl_Header.AutoSize = false;
+            lbl_Header.Size = controlSize;
+            lbl_Header.Location = new Point(10, 10);
+            tp_Report.Controls.Add(lbl_Header);
+
+            //Header textbox
+            var tb_ReportHeader = new TextBox();
+            tb_ReportHeader.Enter += new EventHandler(tb_ReportHeader_Enter);
+            tb_ReportHeader.Leave += new EventHandler(tb_ReportHeader_Leave);
+            tb_ReportHeader.Text = "Report header...";
+            tb_ReportHeader.Size = controlSize;
+            tb_ReportHeader.Location = new Point(lbl_Header.Location.X, lbl_Header.Location.Y + lbl_Header.Height);
+            tp_Report.Controls.Add(tb_ReportHeader);
+
+            //Date label
+            var lbl_Date = new Label();
+            lbl_Date.Text = "Report date";
+            lbl_Date.Font = fontStyleBold;
+            lbl_Date.AutoSize = false;
+            lbl_Date.Size = controlSize;
+            lbl_Date.Location = new Point(tb_ReportHeader.Location.X, tb_ReportHeader.Location.Y + tb_ReportHeader.Height + 15);
+            tp_Report.Controls.Add(lbl_Date);
+
+            //Date picker
+            var dtp_Report = new DateTimePicker();
+            dtp_Report.ValueChanged += new EventHandler(dtp_Report_ValueChanged);
+            dtp_Report.Format = DateTimePickerFormat.Short;
+            dtp_Report.Size = controlSize;
+            dtp_Report.Location = new Point(lbl_Date.Location.X, lbl_Date.Location.Y + lbl_Date.Height);
+            tp_Report.Controls.Add(dtp_Report);
+
+            //Report from plant/line label
+            var lbl_ReportFrom = new Label();
+            lbl_ReportFrom.Text = "Report from plant/line";
+            lbl_ReportFrom.Font = fontStyleBold;
+            lbl_ReportFrom.AutoSize = false;
+            lbl_ReportFrom.Size = controlSize;
+            lbl_ReportFrom.Location = new Point(dtp_Report.Location.X, dtp_Report.Location.Y + dtp_Report.Height + 15);
+            tp_Report.Controls.Add(lbl_ReportFrom);
+
+            //Report from plant/line textbox
+            var tb_ReportFrom = new TextBox();
+            tb_ReportFrom.Enter += new EventHandler(tb_ReportFrom_Enter);
+            tb_ReportFrom.Leave += new EventHandler(tb_ReportFrom_Leave);
+            tb_ReportFrom.Text = "Report from plant/line...";
+            tb_ReportFrom.Size = controlSize;
+            tb_ReportFrom.Location = new Point(lbl_ReportFrom.Location.X, lbl_ReportFrom.Location.Y + lbl_ReportFrom.Height);
+            tp_Report.Controls.Add(tb_ReportFrom);
+
+            //ReportBy label
+            var lbl_ReportBy = new Label();
+            lbl_ReportBy.Text = "Report done by";
+            lbl_ReportBy.Font = fontStyleBold;
+            lbl_ReportBy.AutoSize = false;
+            lbl_ReportBy.Size = controlSize;
+            lbl_ReportBy.Location = new Point(tb_ReportFrom.Location.X, tb_ReportFrom.Location.Y + tb_ReportFrom.Height + 15);
+            tp_Report.Controls.Add(lbl_ReportBy);
+
+            //ReportBy textbox
+            var tb_ReportBy = new TextBox();
+            tb_ReportBy.Enter += new EventHandler(tb_ReportBy_Enter);
+            tb_ReportBy.Leave += new EventHandler(tb_ReportBy_Leave);
+            tb_ReportBy.Text = "Report done by...";
+            tb_ReportBy.Size = controlSize;
+            tb_ReportBy.Location = new Point(lbl_ReportBy.Location.X, lbl_ReportBy.Location.Y + lbl_ReportBy.Height);
+            tp_Report.Controls.Add(tb_ReportBy);
+
+            //Row chart label
+            var lbl_RowChart = new Label();
+            lbl_RowChart.Text = "Row chart";
+            lbl_RowChart.Font = fontStyleBold;
+            lbl_RowChart.AutoSize = true;
+            lbl_RowChart.Location = new Point(lbl_Header.Location.X + lbl_Header.Width + 30, lbl_Header.Location.Y);
+            tp_Report.Controls.Add(lbl_RowChart);
+
+            //Charts checkbox row chart
+            var chk_RowChart = new CheckBox();
+            chk_RowChart.CheckStateChanged += new EventHandler(chk_RowChart_CheckStateChanged);
+            chk_RowChart.Text = "Add Row Chart";
+            chk_RowChart.Checked = true;
+            chk_RowChart.AutoSize = true;            
+            chk_RowChart.Location = new Point(lbl_RowChart.Location.X, lbl_RowChart.Location.Y + lbl_RowChart.Height + 8);
+            tp_Report.Controls.Add(chk_RowChart);
+
+            //Pie chart label
+            var lbl_PieChart = new Label();
+            lbl_PieChart.Text = "Pie chart";
+            lbl_PieChart.Font = fontStyleBold;
+            lbl_PieChart.AutoSize = true;
+            lbl_PieChart.Location = new Point(chk_RowChart.Location.X + chk_RowChart.Width + 5, lbl_RowChart.Location.Y);
+            tp_Report.Controls.Add(lbl_PieChart);
+
+            //Charts checkbox pie chart
+            var chk_PieChart = new CheckBox();
+            chk_PieChart.CheckStateChanged += new EventHandler(chk_PieChart_CheckStateChanged);
+            chk_PieChart.Text = "Add Pie Chart";
+            chk_PieChart.Checked = true;
+            chk_PieChart.AutoSize = true;
+            chk_PieChart.Location = new Point(chk_RowChart.Location.X + chk_RowChart.Width + 5, chk_RowChart.Location.Y);
+            tp_Report.Controls.Add(chk_PieChart);
+
+            //Summary label
+            var lbl_Summary = new Label();
+            lbl_Summary.Text = "Summary";
+            lbl_Summary.Font = fontStyleBold;
+            lbl_Summary.AutoSize = true;
+            lbl_Summary.Location = new Point(chk_PieChart.Location.X + chk_PieChart.Width + 5, lbl_RowChart.Location.Y);
+            tp_Report.Controls.Add(lbl_Summary);
+
+            //Summary checkbox
+            var chk_Summary = new CheckBox();
+            chk_Summary.CheckStateChanged += new EventHandler(chk_Summary_CheckStateChanged);
+            chk_Summary.Text = "Add summary";
+            chk_Summary.Checked = true;
+            chk_Summary.AutoSize = true;
+            chk_Summary.Location = new Point(lbl_Summary.Location.X, chk_PieChart.Location.Y);
+            tp_Report.Controls.Add(chk_Summary);
+
+            //Freetext label
+            var lbl_FreeText = new Label();
+            lbl_FreeText.Text = "Free text";
+            lbl_FreeText.Font = fontStyleBold;
+            lbl_FreeText.AutoSize = true;
+            lbl_FreeText.Location = new Point(chk_RowChart.Location.X, lbl_Date.Location.Y);
+            tp_Report.Controls.Add(lbl_FreeText);
+
+            //Freetext textbox
+            var tb_Freetext = new TextBox();
+            tb_Freetext.Enter += new EventHandler(tb_Freetext_Enter);
+            tb_Freetext.Leave += new EventHandler(tb_Freetext_Leave);
+            tb_Freetext.Text = "Free text...";
+            tb_Freetext.Multiline = true;
+            tb_Freetext.Location = new Point(lbl_FreeText.Location.X, dtp_Report.Location.Y);
+            tb_Freetext.Size = new Size(chk_Summary.Location.X + chk_Summary.Width - chk_RowChart.Location.X, tb_ReportBy.Location.Y + tb_ReportBy.Height - tb_Freetext.Location.Y);
+            tp_Report.Controls.Add(tb_Freetext);
+
+            //Generate report button
+            var btn_GenerateReport = new Button();
+            btn_GenerateReport.Click += new EventHandler(btn_GenerateReport_Click);
+            btn_GenerateReport.Text = "Generate report";
+            btn_GenerateReport.Font = new Font(btn_GenerateReport.Font.FontFamily, 18.0f);
+            btn_GenerateReport.Size = new Size(chk_Summary.Location.X + chk_Summary.Width - tb_ReportBy.Location.X, 150);
+            btn_GenerateReport.Location = new Point(tb_ReportBy.Location.X, tb_ReportBy.Location.Y + tb_ReportBy.Height + 15);
+            tp_Report.Controls.Add(btn_GenerateReport);
+
+        }
+
+
+
+        private void StartCreatePDFReport()
+        {
+            generator = new Classes.ReportGenerator("ALARM ANALYSIS " + DateTime.Today.ToShortDateString());
+
+            Cursor = Cursors.WaitCursor;
+            paintForm = new Forms.PaintCharts(this, mySummary);
+            paintForm.Show();
+
+            //After the paintForm is showned it will draw charts and then set UC_NewLog property PaintFormCompleted,
+            //this will in turn call function paintChartFormDone();
+        }
+
+        private void paintChartFormDone(ref Classes.ReportGenerator generator)
+        {           
+
+            if (rowChart != null)
+                generator.rowChart = (Image)BitmapFromChart(rowChart);
+
+            if (pieChart != null)
+                generator.pieChart = (Image)BitmapFromChart(pieChart);
+
+            var filepath = generator.Generate(false);
+
+            Process.Start(filepath);
+            Cursor = Cursors.Default;
+
+            paintForm.Close();
+            paintForm.Dispose();
+
+
+        }
+
+        #endregion
 
         #region EVENTS
 
-        void OnBarBtnClick(object sender, EventArgs e)
+        private void tb_ReportFrom_Enter(object sender, EventArgs e)
+        {
+            TextBox thisTB = (TextBox)sender;
+            if (!tb_ReportFrom_Edited)
+                thisTB.Text = "";
+        }
+
+        private void tb_ReportFrom_Leave(object sender, EventArgs e)
+        {
+            TextBox thisTB = (TextBox)sender;
+            tb_ReportFrom_Text = thisTB.Text;
+            tb_ReportFrom_Edited = true;
+        }
+
+        private void tb_ReportHeader_Enter(object sender, EventArgs e)
+        {
+            TextBox thisTB = (TextBox)sender;
+            if (!tb_Header_Edited)
+                thisTB.Text = "";
+        }
+
+        private void tb_ReportHeader_Leave(object sender, EventArgs e)
+        {
+            TextBox thisTB = (TextBox)sender;
+            tb_Header_Text = thisTB.Text;
+            tb_Header_Edited = true;
+        }
+
+        private void dtp_Report_ValueChanged(object sender, EventArgs e)
+        {
+            dtp_ReportDate = dtp_ReportDate.Date;
+        }
+
+        private void tb_ReportBy_Enter(object sender, EventArgs e)
+        {
+            TextBox thisTB = (TextBox)sender;
+            if (!tb_ReportBy_Edited)
+                thisTB.Text = "";            
+        }
+
+        private void tb_ReportBy_Leave(object sender, EventArgs e)
+        {
+            TextBox thisTB = (TextBox)sender;
+            tb_ReportBy_Text = thisTB.Text;
+            tb_ReportBy_Edited = true;
+        }
+
+        private void chk_PieChart_CheckStateChanged(object sender, EventArgs e)
+        {
+            CheckBox thisChk = (CheckBox)sender;
+            if (thisChk.Checked)
+                chk_PieChart_Checked = true;
+            else
+                chk_PieChart_Checked = false;
+        }
+
+        private void chk_RowChart_CheckStateChanged(object sender, EventArgs e)
+        {
+            CheckBox thisChk = (CheckBox)sender;
+            if (thisChk.Checked)
+                chk_RowChart_Checked = true;
+            else
+                chk_RowChart_Checked = false;
+        }
+
+        private void chk_Summary_CheckStateChanged(object sender, EventArgs e)
+        {
+            CheckBox thisChk = (CheckBox)sender;
+            if (thisChk.Checked)
+                chk_Summary_Checked = true;
+            else
+                chk_Summary_Checked = false;
+        }
+
+        private void tb_Freetext_Enter(object sender, EventArgs e)
+        {
+            TextBox thisTB = (TextBox)sender;
+            if (!tb_FreeText_Edited)
+                thisTB.Text = "";
+        }
+
+        private void tb_Freetext_Leave(object sender, EventArgs e)
+        {
+            TextBox thisTB = (TextBox)sender;
+            tb_FreeText_Text = thisTB.Text;
+            tb_FreeText_Edited = true;
+        }
+
+        private void btn_GenerateReport_Click(object sender, EventArgs e)
+        {
+            StartCreatePDFReport();
+        }        
+
+        private void OnBarBtnClick(object sender, EventArgs e)
         {
             if (tp_Diagram.Controls.ContainsKey("rowControl") && tp_Diagram.Controls.ContainsKey("pieControl"))
             {
@@ -632,7 +775,7 @@ namespace Analyze_alarms
             }
         }
 
-        void OnPieBtnClick(object sender, EventArgs e)
+        private void OnPieBtnClick(object sender, EventArgs e)
         {
             if (tp_Diagram.Controls.ContainsKey("rowControl") && tp_Diagram.Controls.ContainsKey("pieControl"))
             {
@@ -686,12 +829,20 @@ namespace Analyze_alarms
                 this.AnalyzeButtonClick(this, e);
 
             //Local handler code
+            Cursor = Cursors.WaitCursor;
+
             mySummary.Clear();
             runTime = TimeSpan.Zero;
             AnalyzeLogFile();
             CreateSummaryTab();
             CreateDiagramTab();
+            
+            Cursor = Cursors.Default;
+
+            tabControl1.SelectedIndex = 2;
         }
+
+
 
         private void UC_NewLog_Load(object sender, EventArgs e)
         {
@@ -707,16 +858,13 @@ namespace Analyze_alarms
             }
         }
 
-        private void tabControl1_TabIndexChanged(object sender, EventArgs e)
+        private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (tabControl1.TabIndex == 3)
-                CreatePDF_Report();
+            if (tabControl1.SelectedIndex == 2 && tabControl1.TabPages.Count < 4)
+                CreateReportTab();
         }
         #endregion
 
-        private void tp_Report_Click(object sender, EventArgs e)
-        {
-            CreatePDF_Report();
-        }
+
     }
 }
