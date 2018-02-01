@@ -20,7 +20,7 @@ namespace Analyze_alarms
         TimeSpan runTime = new TimeSpan();
         //TODO: This data should be stored for future in DB
         //Summary data for summary tabpage
-        private List<Classes.Summary> mySummary = new List<Classes.Summary>();
+        public List<Classes.Summary> mySummary = new List<Classes.Summary>();
         private int nrOfSummaryEntrys;
         private TabPage tp_Report;
         private Classes.Charts myCharts = new Classes.Charts();
@@ -28,7 +28,7 @@ namespace Analyze_alarms
         Form paintForm;
         Classes.ReportGenerator generator;
         private bool tb_Header_Edited, tb_ReportFrom_Edited, tb_ReportBy_Edited, tb_FreeText_Edited;
-        public string tb_Header_Text, tb_ReportFrom_Text, tb_ReportBy_Text, tb_FreeText_Text;
+        public string tb_Header_Text = "No text.", tb_ReportFrom_Text = "No text.", tb_ReportBy_Text = "No text.", tb_FreeText_Text = "No text.";
         public DateTime dtp_ReportDate;
         public bool chk_RowChart_Checked, chk_PieChart_Checked, chk_Summary_Checked;
 
@@ -70,14 +70,13 @@ namespace Analyze_alarms
 
         private void InitDataTable(DataTable data)
         {
-
             dataGridView1.ReadOnly = true;
             dataGridView1.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.DisableResizing;
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
             dataGridView1.DataSource = data;
             dataGridView1.Columns[6].Visible = false;
             dataGridView1.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.EnableResizing;
-            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;            
         }
 
         private void ColorDGVRow(int Index, Color color, DataGridView dgv)
@@ -496,6 +495,7 @@ namespace Analyze_alarms
             tb_ReportHeader.Enter += new EventHandler(tb_ReportHeader_Enter);
             tb_ReportHeader.Leave += new EventHandler(tb_ReportHeader_Leave);
             tb_ReportHeader.Text = "Report header...";
+            tb_ReportHeader.MaxLength = 35;
             tb_ReportHeader.Size = controlSize;
             tb_ReportHeader.Location = new Point(lbl_Header.Location.X, lbl_Header.Location.Y + lbl_Header.Height);
             tp_Report.Controls.Add(tb_ReportHeader);
@@ -519,7 +519,7 @@ namespace Analyze_alarms
 
             //Report from plant/line label
             var lbl_ReportFrom = new Label();
-            lbl_ReportFrom.Text = "Report from plant/line";
+            lbl_ReportFrom.Text = "Report from";
             lbl_ReportFrom.Font = fontStyleBold;
             lbl_ReportFrom.AutoSize = false;
             lbl_ReportFrom.Size = controlSize;
@@ -530,7 +530,8 @@ namespace Analyze_alarms
             var tb_ReportFrom = new TextBox();
             tb_ReportFrom.Enter += new EventHandler(tb_ReportFrom_Enter);
             tb_ReportFrom.Leave += new EventHandler(tb_ReportFrom_Leave);
-            tb_ReportFrom.Text = "Report from plant/line...";
+            tb_ReportFrom.Text = "Report from...";
+            tb_ReportFrom.MaxLength = 35;
             tb_ReportFrom.Size = controlSize;
             tb_ReportFrom.Location = new Point(lbl_ReportFrom.Location.X, lbl_ReportFrom.Location.Y + lbl_ReportFrom.Height);
             tp_Report.Controls.Add(tb_ReportFrom);
@@ -637,11 +638,21 @@ namespace Analyze_alarms
 
         private void StartCreatePDFReport()
         {
-            generator = new Classes.ReportGenerator("ALARM ANALYSIS " + DateTime.Today.ToShortDateString());
+            generator = new Classes.ReportGenerator(this);
 
             Cursor = Cursors.WaitCursor;
-            paintForm = new Forms.PaintCharts(this, mySummary);
-            paintForm.Show();
+            if (chk_PieChart_Checked || chk_RowChart_Checked)
+            {
+                paintForm = new Forms.PaintCharts(this, mySummary);
+                paintForm.Show();
+            }
+            else
+            {
+                GenerateReport();
+            }
+
+            
+            
 
             //After the paintForm is showned it will draw charts and then set UC_NewLog property PaintFormCompleted,
             //this will in turn call function paintChartFormDone();
@@ -656,15 +667,18 @@ namespace Analyze_alarms
             if (pieChart != null)
                 generator.pieChart = (Image)BitmapFromChart(pieChart);
 
+            paintForm.Close();
+            paintForm.Dispose();
+
+            GenerateReport();
+        }
+
+        private void GenerateReport()
+        {
             var filepath = generator.Generate(false);
 
             Process.Start(filepath);
             Cursor = Cursors.Default;
-
-            paintForm.Close();
-            paintForm.Dispose();
-
-
         }
 
         #endregion
@@ -773,6 +787,24 @@ namespace Analyze_alarms
                 tp_Diagram.Controls[tp_Diagram.Controls.IndexOfKey("btn_Row")].BringToFront();
                 tp_Diagram.Controls[tp_Diagram.Controls.IndexOfKey("btn_Pie")].BringToFront();
             }
+        }
+    
+
+        //TODO: DEGUG ONLY
+        private void dataGridView1_RowPostPaint(object sender, DataGridViewRowPostPaintEventArgs e)
+        {
+            var grid = sender as DataGridView;
+            var rowIdx = (e.RowIndex).ToString();
+
+            var centerFormat = new StringFormat()
+            {
+                // right alignment might actually make more sense for numbers
+                Alignment = StringAlignment.Center,
+                LineAlignment = StringAlignment.Center
+            };
+
+            var headerBounds = new Rectangle(e.RowBounds.Left, e.RowBounds.Top, grid.RowHeadersWidth, e.RowBounds.Height);
+            e.Graphics.DrawString(rowIdx, this.Font, SystemBrushes.ControlText, headerBounds, centerFormat);
         }
 
         private void OnPieBtnClick(object sender, EventArgs e)

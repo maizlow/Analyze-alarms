@@ -58,7 +58,6 @@
             this.label4 = new System.Windows.Forms.Label();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.backgroundWorker2 = new System.ComponentModel.BackgroundWorker();
-            this.textBox1 = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.gb_Modify.SuspendLayout();
             this.gb_Data.SuspendLayout();
@@ -86,6 +85,7 @@
             this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
             this.dataGridView1.Size = new System.Drawing.Size(569, 354);
             this.dataGridView1.TabIndex = 1;
+            this.dataGridView1.RowPostPaint += new System.Windows.Forms.DataGridViewRowPostPaintEventHandler(this.dataGridView1_RowPostPaint);
             // 
             // dTP_From
             // 
@@ -100,7 +100,6 @@
             // 
             this.gb_Modify.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.gb_Modify.Controls.Add(this.textBox1);
             this.gb_Modify.Controls.Add(this.btn_Analyze);
             this.gb_Modify.Controls.Add(this.btn_Filter);
             this.gb_Modify.Controls.Add(this.label1);
@@ -396,13 +395,6 @@
             this.pictureBox1.TabIndex = 2;
             this.pictureBox1.TabStop = false;
             // 
-            // textBox1
-            // 
-            this.textBox1.Location = new System.Drawing.Point(231, 46);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(244, 20);
-            this.textBox1.TabIndex = 9;
-            // 
             // UC_NewLog
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -462,6 +454,5 @@
         private System.Windows.Forms.Panel panel1;
         private System.ComponentModel.BackgroundWorker backgroundWorker2;
         private System.Windows.Forms.PictureBox pictureBox1;
-        private System.Windows.Forms.TextBox textBox1;
     }
 }
