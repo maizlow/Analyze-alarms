@@ -23,15 +23,16 @@ namespace Analyze_alarms
         public List<Classes.Summary> mySummary = new List<Classes.Summary>();
         private int nrOfSummaryEntrys;
         private TabPage tp_Report;
+        private SaveFileDialog saveDialog;
         private Classes.Charts myCharts = new Classes.Charts();
         public Control rowChart, pieChart;
         Form paintForm;
         Classes.ReportGenerator generator;
         private bool tb_Header_Edited, tb_ReportFrom_Edited, tb_ReportBy_Edited, tb_FreeText_Edited;
-        public string tb_Header_Text = "No text.", tb_ReportFrom_Text = "No text.", tb_ReportBy_Text = "No text.", tb_FreeText_Text = "No text.";
-        public DateTime dtp_ReportDate;
+        public string tb_Header_Text = "No text.", tb_ReportFrom_Text = "No text.", tb_ReportBy_Text = "No text.", tb_FreeText_Text = "";
+        public DateTime dtp_ReportDate = DateTime.Now;
         public bool chk_RowChart_Checked, chk_PieChart_Checked, chk_Summary_Checked;
-
+        public string saveReportFilePath;
         private bool paintFormCompleted;
         public bool PaintFormCompleted
         {
@@ -513,6 +514,7 @@ namespace Analyze_alarms
             var dtp_Report = new DateTimePicker();
             dtp_Report.ValueChanged += new EventHandler(dtp_Report_ValueChanged);
             dtp_Report.Format = DateTimePickerFormat.Short;
+            dtp_Report.Value = DateTime.Now;
             dtp_Report.Size = controlSize;
             dtp_Report.Location = new Point(lbl_Date.Location.X, lbl_Date.Location.Y + lbl_Date.Height);
             tp_Report.Controls.Add(dtp_Report);
@@ -607,7 +609,7 @@ namespace Analyze_alarms
 
             //Freetext label
             var lbl_FreeText = new Label();
-            lbl_FreeText.Text = "Free text";
+            lbl_FreeText.Text = "Comments";
             lbl_FreeText.Font = fontStyleBold;
             lbl_FreeText.AutoSize = true;
             lbl_FreeText.Location = new Point(chk_RowChart.Location.X, lbl_Date.Location.Y);
@@ -617,7 +619,7 @@ namespace Analyze_alarms
             var tb_Freetext = new TextBox();
             tb_Freetext.Enter += new EventHandler(tb_Freetext_Enter);
             tb_Freetext.Leave += new EventHandler(tb_Freetext_Leave);
-            tb_Freetext.Text = "Free text...";
+            tb_Freetext.Text = "";
             tb_Freetext.Multiline = true;
             tb_Freetext.Location = new Point(lbl_FreeText.Location.X, dtp_Report.Location.Y);
             tb_Freetext.Size = new Size(chk_Summary.Location.X + chk_Summary.Width - chk_RowChart.Location.X, tb_ReportBy.Location.Y + tb_ReportBy.Height - tb_Freetext.Location.Y);
@@ -632,9 +634,22 @@ namespace Analyze_alarms
             btn_GenerateReport.Location = new Point(tb_ReportBy.Location.X, tb_ReportBy.Location.Y + tb_ReportBy.Height + 15);
             tp_Report.Controls.Add(btn_GenerateReport);
 
+            //Generate save dialog    
+            saveDialog = new SaveFileDialog();
+            saveDialog.FileOk += new CancelEventHandler(saveDialog_FileOk);
+            saveDialog.DefaultExt = ".pdf";
+            saveDialog.Filter = "Portable Document Format (.pdf)|*.pdf";
+            saveDialog.RestoreDirectory = true;
+
         }
 
+        private void saveDialog_FileOk(object sender, CancelEventArgs e)
+        {
+            SaveFileDialog s = (SaveFileDialog)sender;
+            saveReportFilePath = s.FileName;
 
+            StartCreatePDFReport();
+        }
 
         private void StartCreatePDFReport()
         {
@@ -645,17 +660,13 @@ namespace Analyze_alarms
             {
                 paintForm = new Forms.PaintCharts(this, mySummary);
                 paintForm.Show();
+                //After the paintForm is showned it will draw charts and then set UC_NewLog property PaintFormCompleted,
+                //this will in turn call function paintChartFormDone();
             }
             else
             {
                 GenerateReport();
-            }
-
-            
-            
-
-            //After the paintForm is showned it will draw charts and then set UC_NewLog property PaintFormCompleted,
-            //this will in turn call function paintChartFormDone();
+            }            
         }
 
         private void paintChartFormDone(ref Classes.ReportGenerator generator)
@@ -675,7 +686,7 @@ namespace Analyze_alarms
 
         private void GenerateReport()
         {
-            var filepath = generator.Generate(false);
+            var filepath = generator.Generate(saveReportFilePath, false);
 
             Process.Start(filepath);
             Cursor = Cursors.Default;
@@ -715,7 +726,8 @@ namespace Analyze_alarms
 
         private void dtp_Report_ValueChanged(object sender, EventArgs e)
         {
-            dtp_ReportDate = dtp_ReportDate.Date;
+            DateTimePicker dtp = (DateTimePicker)sender;
+            dtp_ReportDate = dtp.Value;
         }
 
         private void tb_ReportBy_Enter(object sender, EventArgs e)
@@ -775,7 +787,7 @@ namespace Analyze_alarms
 
         private void btn_GenerateReport_Click(object sender, EventArgs e)
         {
-            StartCreatePDFReport();
+            saveDialog.ShowDialog();
         }        
 
         private void OnBarBtnClick(object sender, EventArgs e)

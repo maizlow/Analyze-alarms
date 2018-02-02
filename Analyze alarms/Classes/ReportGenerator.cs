@@ -31,6 +31,7 @@ namespace Analyze_alarms.Classes
         private static XImage customerLogoImage;
         public Image rowChart, pieChart;
         private UC_NewLog parent;
+        private int maxSummaryEntrysPerPage = 25;
 
         public ReportGenerator(UC_NewLog parent)
         {
@@ -41,7 +42,7 @@ namespace Analyze_alarms.Classes
         /// Generate a new PDF report
         /// </summary>
         /// <returns>Filepath to new PDF</returns>
-        public string Generate(bool useCustomerLogo)
+        public string Generate(string savePath, bool useCustomerLogo)
         {
             var document = new PdfDocument();
 
@@ -54,12 +55,49 @@ namespace Analyze_alarms.Classes
             GenerateFooter(firstPage_gfx, PageOrientation.Portrait);
 
             //======================================================================================================================================//
+            //Add page: Freetext
+            if (parent.tb_FreeText_Text != "")
+            {
+                var freeTextPage = document.AddPage();
+                freeTextPage.Size = PageSize;
+                var freeTextPage_gfx = XGraphics.FromPdfPage(freeTextPage);
+                GenerateFreeTextPage(freeTextPage_gfx);
+                GenerateFooter(freeTextPage_gfx, PageOrientation.Portrait);
+            }
+
+            //======================================================================================================================================//
             //Add page: Summary
-            var summaryPage = document.AddPage();
-            summaryPage.Size = PageSize;
-            var summaryPage_gfx = XGraphics.FromPdfPage(summaryPage);
-            GenerateSummaryPage(summaryPage_gfx);
-            GenerateFooter(firstPage_gfx, PageOrientation.Portrait);
+            if (parent.chk_Summary_Checked)
+            {
+                var summaryPage = document.AddPage();
+                summaryPage.Size = PageSize;
+                var summaryPage_gfx = XGraphics.FromPdfPage(summaryPage);
+                GenerateSummaryPage(summaryPage_gfx, 0);
+                GenerateFooter(summaryPage_gfx, PageOrientation.Portrait);
+
+                PdfPage summaryPage2 = new PdfPage();
+                PdfPage summaryPage3 = new PdfPage();
+
+                if (parent.mySummary.Count > maxSummaryEntrysPerPage)
+                {
+                    GenerateContinuesLabel(summaryPage_gfx);
+                    summaryPage2 = document.AddPage();
+                    summaryPage2.Size = PageSize;
+                    var summaryPage2_gfx = XGraphics.FromPdfPage(summaryPage2);
+                    GenerateSummaryPage(summaryPage2_gfx, maxSummaryEntrysPerPage);
+                    GenerateFooter(summaryPage2_gfx, PageOrientation.Portrait);
+
+                    if (parent.mySummary.Count > maxSummaryEntrysPerPage * 2)
+                    {
+                        GenerateContinuesLabel(summaryPage2_gfx);
+                        summaryPage3 = document.AddPage();
+                        summaryPage3.Size = PageSize;
+                        var summaryPage3_gfx = XGraphics.FromPdfPage(summaryPage3);
+                        GenerateSummaryPage(summaryPage3_gfx, maxSummaryEntrysPerPage * 2);
+                        GenerateFooter(summaryPage3_gfx, PageOrientation.Portrait);
+                    }
+                }
+            }           
 
             //======================================================================================================================================//
             //Add page: Row chart
@@ -85,13 +123,10 @@ namespace Analyze_alarms.Classes
                 GenerateFooter(pieChartPage_gfx, PageOrientation.Landscape);
             }
 
-
-            var filename = @"Analyzed log report " + DateTime.Today.ToShortDateString() + ".pdf";
-            document.Save(filename);
-            return filename;
+            
+            document.Save(savePath);
+            return savePath;
         }
-
-
 
         /// <summary>
         /// Creates a new logo image from the filePath. If not created the default ABECE logo will show.
@@ -138,7 +173,7 @@ namespace Analyze_alarms.Classes
             //Add Plant: label
             font = new XFont("Calibri", 24.0, XFontStyle.Bold | XFontStyle.Underline);
             stringSize = gfx.MeasureString("Plant: ", font);
-            rect = new XRect(Margin, PageHeight - 180, stringSize.Width, font.GetHeight());
+            rect = new XRect(Margin, PageHeight - 220, stringSize.Width, font.GetHeight());
             CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString("Plant: ", font, TextBrush, rect, XStringFormats.TopLeft);
 
             //======================================================================================================================================//
@@ -162,19 +197,47 @@ namespace Analyze_alarms.Classes
             rect = new XRect(Margin + rect.Width + 8, rect.Location.Y + 2, stringSize.Width, font.GetHeight());
             CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString(parent.tb_ReportBy_Text, font, TextBrush, rect, XStringFormats.TopLeft);
 
+            //Add Date: label
+            font = new XFont("Calibri", 24.0, XFontStyle.Bold | XFontStyle.Underline);
+            stringSize = gfx.MeasureString("Date: ", font);
+            rect = new XRect(Margin, rect.Location.Y + rect.Height + rect.Height, stringSize.Width, font.GetHeight());
+            CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString("Date: ", font, TextBrush, rect, XStringFormats.TopLeft);
+
+            //======================================================================================================================================//
+            //Add date
+            font = new XFont("Calibri", 22.0, XFontStyle.Bold);
+            stringSize = gfx.MeasureString(parent.tb_ReportBy_Text, font);
+            rect = new XRect(Margin + rect.Width + 8, rect.Location.Y + 2, stringSize.Width, font.GetHeight());
+            CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString(parent.dtp_ReportDate.Date.ToShortDateString(), font, TextBrush, rect, XStringFormats.TopLeft);
         }
 
-        private void GenerateSummaryPage(XGraphics gfx)
+        private void GenerateFreeTextPage(XGraphics gfx)
+        {
+            //Add comment page header
+            //======================================================================================================================================//
+            var font = new XFont("Calibri", 30.0, XFontStyle.Bold);
+            var stringSize = gfx.MeasureString("COMMENTS", font);
+            var rect = new XRect(Margin, Margin, UsableWidth, font.GetHeight());
+            CreateTextFormatter(gfx, XParagraphAlignment.Center).DrawString("COMMENTS", font, TextBrush, rect, XStringFormats.TopLeft);
+
+            //Add free text
+            //======================================================================================================================================//
+            font = new XFont("Calibri", 11.0, XFontStyle.Bold);
+            rect = new XRect(Margin, rect.Location.Y + rect.Height + 5, UsableWidth, PageHeight - rect.Location.Y + rect.Height + 5);
+            CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString(parent.tb_FreeText_Text, font, TextBrush, rect, XStringFormats.TopLeft);
+        }
+
+        private void GenerateSummaryPage(XGraphics gfx, int firstIndex)
         {
             //======================================================================================================================================//
-            //Add Plant: label
+            //Add summary header
             var font = new XFont("Calibri", 30.0, XFontStyle.Bold);
-            var stringSize = gfx.MeasureString("Summary", font);
+            var stringSize = gfx.MeasureString("SUMMARY", font);
             var rect = new XRect(Margin, Margin, UsableWidth, font.GetHeight());
-            CreateTextFormatter(gfx, XParagraphAlignment.Center).DrawString("Summary", font, TextBrush, rect, XStringFormats.TopLeft);
+            CreateTextFormatter(gfx, XParagraphAlignment.Center).DrawString("SUMMARY", font, TextBrush, rect, XStringFormats.TopLeft);
 
             //======================================================================================================================================//
-            //Add: Header boxes
+            //Add: Summary header boxes
             int bigBoxW = (int)UsableWidth / 2,
                 smallBoxW = (int)UsableWidth / 5,
                 startX = (int)PageWidth / 2 - (bigBoxW + smallBoxW + smallBoxW) / 2,
@@ -195,7 +258,7 @@ namespace Analyze_alarms.Classes
             gfx.DrawRectangles(pen, rects);
 
             //======================================================================================================================================//
-            //Add Plant: label
+            //Add summary table
             font = new XFont("Calibri", 15.0, XFontStyle.Bold);
             var msgTextRect = new XRect(rects[0].Location.X + 1, rects[0].Location.Y + 3, rects[0].Width - 2, rects[0].Height - 2);
             var amountTextRect = new XRect(rects[1].Location.X + 1, rects[1].Location.Y + 3, rects[1].Width - 2, rects[1].Height - 2);
@@ -207,38 +270,50 @@ namespace Analyze_alarms.Classes
 
             font = new XFont("Calibri", 11.0, XFontStyle.Bold);
             XRect loopRect;
-            int i = 1;
+            int y = 1; //Maximum 26 then new page is needed
 
-            foreach (Summary s in parent.mySummary)
+            for(int i = firstIndex; i < parent.mySummary.Count - 1; i++)
             {
-                loopRect = new XRect(startX, startY + (rectHeight * i), bigBoxW, rectHeight);
+                loopRect = new XRect(startX, startY + (rectHeight * y), bigBoxW, rectHeight);
                 gfx.DrawRectangle(pen, loopRect);
 
-                loopRect = new XRect(startX + 2, startY + (rectHeight * i) + 5, rects[0].Width - 2, rects[0].Height - 2);
-                CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString(s.MsgText, font, TextBrush, loopRect, XStringFormats.TopLeft);
+                loopRect = new XRect(startX + 2, startY + (rectHeight * y) + 5, rects[0].Width - 2, rects[0].Height - 2);
+                CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString(parent.mySummary[i].MsgText, font, TextBrush, loopRect, XStringFormats.TopLeft);
 
-                loopRect = new XRect(startX + bigBoxW, startY + (rectHeight * i), smallBoxW, rectHeight);
+                loopRect = new XRect(startX + bigBoxW, startY + (rectHeight * y), smallBoxW, rectHeight);
                 gfx.DrawRectangle(pen, loopRect);
 
-                loopRect = new XRect(startX + bigBoxW + 1, startY + (rectHeight * i) + 5, rects[1].Width - 2, rects[1].Height - 2);
-                CreateTextFormatter(gfx, XParagraphAlignment.Center).DrawString(s.Amount.ToString(), font, TextBrush, loopRect, XStringFormats.TopLeft);
+                loopRect = new XRect(startX + bigBoxW + 1, startY + (rectHeight * y) + 5, rects[1].Width - 2, rects[1].Height - 2);
+                CreateTextFormatter(gfx, XParagraphAlignment.Center).DrawString(parent.mySummary[i].Amount.ToString(), font, TextBrush, loopRect, XStringFormats.TopLeft);
 
-                loopRect = new XRect(startX + bigBoxW + smallBoxW, startY + (rectHeight * i), smallBoxW, rectHeight);
+                loopRect = new XRect(startX + bigBoxW + smallBoxW, startY + (rectHeight * y), smallBoxW, rectHeight);
                 gfx.DrawRectangle(pen, loopRect);
 
-                loopRect = new XRect(startX + bigBoxW + smallBoxW + 1, startY + (rectHeight * i) + 5, rects[2].Width - 2, rects[2].Height - 2);
-                CreateTextFormatter(gfx, XParagraphAlignment.Center).DrawString(s.stopDuration.ToString(@"hh\:mm\:ss"), font, TextBrush, loopRect, XStringFormats.TopLeft);
-
-                i++;
+                loopRect = new XRect(startX + bigBoxW + smallBoxW + 1, startY + (rectHeight * y) + 5, rects[2].Width - 2, rects[2].Height - 2);
+                CreateTextFormatter(gfx, XParagraphAlignment.Center).DrawString(parent.mySummary[i].stopDuration.ToString(@"hh\:mm\:ss"), font, TextBrush, loopRect, XStringFormats.TopLeft);
+                y++;
             }
-
-
-
-
         }
 
+        private void GenerateContinuesLabel(XGraphics gfx)
+        {
+            //======================================================================================================================================//
+            //Add "Continues..."
+            var font = new XFont("Calibri", 9.0, XFontStyle.Bold);
+            var stringSize = gfx.MeasureString("Continues >", font);
+            var rect = new XRect(PageWidth - Margin - stringSize.Width, PageHeight - stringSize.Height - 60, stringSize.Width, font.GetHeight());
+            CreateTextFormatter(gfx, XParagraphAlignment.Right).DrawString("Continues >", font, TextBrush, rect, XStringFormats.TopLeft);            
+        }
+
+        /// <summary>
+        /// Generates a page for a chart containing a picture and a header
+        /// </summary>
+        /// <param name="gfx"></param>
+        /// <param name="chart">Image of chart</param>
         private void GenerateChartPage(XGraphics gfx, Image chart)
-        {        
+        {
+            //======================================================================================================================================//
+            //Add chart image
             XImage ximg = XImage.FromGdiPlusImage(chart);
             gfx.DrawImage(ximg, PageWidthLandscape / 2 - ximg.PointWidth / 2, PageWidth / 2 - ximg.PointHeight / 2);
         }
