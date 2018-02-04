@@ -220,12 +220,12 @@ namespace Analyze_alarms
             //clear all recent list from menu
             if (log)
             {
-                PathToRecentFile = "\\Data\\RecentLogs.txt";
+                PathToRecentFile = "\\RecentLogs.txt";
                 LoadRecentMRUList(PathToRecentFile, mru, log); //load list from file
             }
             else
             {
-                PathToRecentFile = "\\Data\\RecentProjects.txt";
+                PathToRecentFile = "\\RecentProjects.txt";
                 LoadRecentMRUList(PathToRecentFile, mru, log); //load list from file
             }
 
@@ -305,20 +305,23 @@ namespace Analyze_alarms
             mru.Clear();
             try
             {
-                //read file stream
-                StreamReader listToRead = new StreamReader(System.Environment.CurrentDirectory + pathEnd);
-
-                string line;
-
-                while ((line = listToRead.ReadLine()) != null)
+                if (File.Exists(System.Environment.CurrentDirectory + pathEnd))
                 {
-                    if (line == "")
-                        continue;
-                    else mru.Enqueue(line); //insert to list
-                }
-                listToRead.Close(); //close the stream
+                    //read file stream
+                    StreamReader listToRead = new StreamReader(System.Environment.CurrentDirectory + pathEnd);
 
-                AddRecentMenuItems(mru, log);
+                    string line;
+
+                    while ((line = listToRead.ReadLine()) != null)
+                    {
+                        if (line == "")
+                            continue;
+                        else mru.Enqueue(line); //insert to list
+                    }
+                    listToRead.Close(); //close the stream
+
+                    AddRecentMenuItems(mru, log);
+                }
             }
             catch (Exception) { }
         }
@@ -734,8 +737,8 @@ namespace Analyze_alarms
         private void Form1_Load(object sender, EventArgs e)
         {
             this.Icon = new Icon(System.Environment.CurrentDirectory + "\\logo.ico");
-            LoadRecentMRUList("\\Data\\RecentLogs.txt", MRLogsList, true);
-            LoadRecentMRUList("\\Data\\RecentProjects.txt", MRProjectsList, false);
+            LoadRecentMRUList("\\RecentLogs.txt", MRLogsList, true);
+            LoadRecentMRUList("\\RecentProjects.txt", MRProjectsList, false);
             LoadLogSettingsFromFile();
             pictureBox1.Image = Image.FromFile(Environment.CurrentDirectory + "\\logo.png");
         }
