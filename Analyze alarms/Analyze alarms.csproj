@@ -120,6 +120,12 @@
     <Compile Include="Classes\ReportGenerator.cs" />
     <Compile Include="Classes\Charts.cs" />
     <Compile Include="Classes\Database\Summary.cs" />
+    <Compile Include="Forms\About.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\About.Designer.cs">
+      <DependentUpon>About.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -159,6 +165,9 @@
     <Compile Include="UserControls\UC_NewLog.Designer.cs">
       <DependentUpon>UC_NewLog.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="Forms\About.resx">
+      <DependentUpon>About.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -203,9 +212,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="ChartBackground2.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Data\RecentLogs.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="ChartBackground.jpg">

@@ -18,12 +18,13 @@ namespace Analyze_alarms
 {
     public partial class MainForm : Form
     {
-        Project openedProjectData = new Project();
+        public Project openedProjectData;// = new Project();
         static List<DataTable> myDataTables = new List<DataTable>();
         private List<UC_NewLog> myUCs = new List<UC_NewLog>();
         List<string> openedFiles = new List<string>();
         const int MRUnumber = 6;
-        System.Collections.Generic.Queue<string> MRUlist = new Queue<string>();
+        Queue<string> MRLogsList = new Queue<string>();
+        Queue<string> MRProjectsList = new Queue<string>();
         const string logSettingsFileName = "\\logsettings.xml";
 
         public static List<LogSettings> logSettings;
@@ -35,8 +36,7 @@ namespace Analyze_alarms
             this.Size = this.MinimumSize;
             toolStripStatusLabel1.Text = "";
         }
-
-
+        
         /// 
         /// All generic functions here
         /// 
@@ -44,7 +44,7 @@ namespace Analyze_alarms
        
         private void AddNewLogControl(string filePath)
         {
-            SaveRecentLogFile(filePath);
+            SaveRecentFile(filePath, true, MRLogsList);
             //Add tabpage with date as name
             string fileTabText = Path.GetFileName(filePath.Remove(filePath.Length-4)).Replace('.', '_').Replace(' ', '_').Replace('-', '_');
             fileTabText = CheckIfDuplicateDate(fileTabText);
@@ -214,59 +214,111 @@ namespace Analyze_alarms
             }
         }
 
-        private void SaveRecentLogFile(string path)
+        private void SaveRecentFile(string path, bool log, Queue<string> mru)
         {
+            string PathToRecentFile;
             //clear all recent list from menu
-
-            LoadRecentList("\\Data\\RecentLogs.txt"); //load list from file
-            if (!(MRUlist.Contains(path))) //prevent duplication on recent list
-                MRUlist.Enqueue(path); //insert given path into list
-                                       //keep list number not exceeded the given value
-            while (MRUlist.Count > MRUnumber)
+            if (log)
             {
-                MRUlist.Dequeue();
+                PathToRecentFile = "\\Data\\RecentLogs.txt";
+                LoadRecentMRUList(PathToRecentFile, mru, log); //load list from file
+            }
+            else
+            {
+                PathToRecentFile = "\\Data\\RecentProjects.txt";
+                LoadRecentMRUList(PathToRecentFile, mru, log); //load list from file
             }
 
-            AddRecentMenuItems();
+            if (!(mru.Contains(path)))          //prevent duplication on recent list
+                mru.Enqueue(path);              //insert given path into list
+                                                //keep list number not exceeded the given value
+            while (mru.Count > MRUnumber)
+            {
+                mru.Dequeue();
+            }
+
+            AddRecentMenuItems(mru, log);
 
             StreamWriter stringToWrite =
-            new StreamWriter(System.Environment.CurrentDirectory + "\\Data\\RecentLogs.txt");
-            foreach (string item in MRUlist)
+            new StreamWriter(System.Environment.CurrentDirectory + PathToRecentFile);
+            foreach (string item in mru)
             {
                 stringToWrite.WriteLine(item); //write list to stream
             }
             stringToWrite.Flush(); //write stream to file
             stringToWrite.Close(); //close the stream and reclaim memory
+            
         }
 
-        private void AddRecentMenuItems()
+        private void AddRecentMenuItems(Queue<string> mru, bool log)
         {
-            recentLogsToolStripMenuItem.DropDownItems.Clear();
-            foreach (string item in MRUlist)
+            if (log) recentLogsToolStripMenuItem.DropDownItems.Clear();
+            else recentProjectsToolStripMenuItem.DropDownItems.Clear();
+
+            foreach (string item in mru)
             {
                 //create new menu for each item in list
-                ToolStripMenuItem fileRecent = new ToolStripMenuItem
-                             (item, null, RecentLogs_click);
-                //add the menu to "recent" menu
-                //fileRecent.Text = GetDateFromString(item);
-                recentLogsToolStripMenuItem.DropDownItems.Add(fileRecent);
+                if (log)
+                {                    
+                    ToolStripMenuItem logRecent = new ToolStripMenuItem(item, null, RecentLogs_click);
+                    //add the menu to "recent" menu
+                    //fileRecent.Text = GetDateFromString(item);
+                    recentLogsToolStripMenuItem.DropDownItems.Add(logRecent);
+                }
+                else
+                {                    
+                    ToolStripMenuItem projectRecent = new ToolStripMenuItem(item, null, RecentProjects_click);
+                    //add the menu to "recent" menu
+                    //fileRecent.Text = GetDateFromString(item);
+                    recentProjectsToolStripMenuItem.DropDownItems.Add(projectRecent);
+                }
             }
         }
 
-        private void LoadRecentList(string pathEnd)
+        private void RemoveRecentMenuItem(string filePath, Queue<string> mru)
+        {
+            mru = new Queue<string>(mru.Where(s => s != filePath));
+
+            string[] lines = File.ReadAllLines(System.Environment.CurrentDirectory + "\\Data\\RecentLogs.txt");
+            string[] newLines = RemoveLineFromFile(lines, filePath);
+            File.WriteAllLines(System.Environment.CurrentDirectory + "\\Data\\RecentLogs.txt", newLines);
+
+            AddRecentMenuItems(mru, true);
+        }
+
+        private string[] RemoveLineFromFile(string[] lines, string removeThis)
+        {
+            string[] s = lines;
+            
+            for(int i = 0; i < lines.Length; i++)
+            {
+                if (lines[i] == removeThis)
+                {
+                    s[i] = null;                    
+                }                
+            }
+            return s;
+        }
+
+        private void LoadRecentMRUList(string pathEnd, Queue<string> mru, bool log)
         {//try to load file. If file isn't found, do nothing
-            MRUlist.Clear();
+            mru.Clear();
             try
             {
                 //read file stream
-                StreamReader listToRead =
-              new StreamReader(System.Environment.CurrentDirectory + pathEnd);
+                StreamReader listToRead = new StreamReader(System.Environment.CurrentDirectory + pathEnd);
+
                 string line;
-                while ((line = listToRead.ReadLine()) != null) //read each line until end of file
-                    MRUlist.Enqueue(line); //insert to list
+
+                while ((line = listToRead.ReadLine()) != null)
+                {
+                    if (line == "")
+                        continue;
+                    else mru.Enqueue(line); //insert to list
+                }
                 listToRead.Close(); //close the stream
 
-                AddRecentMenuItems();
+                AddRecentMenuItems(mru, log);
             }
             catch (Exception) { }
         }
@@ -403,6 +455,12 @@ namespace Analyze_alarms
             }
             else
             {
+                if (!File.Exists(filePath))
+                {
+                    MessageBox.Show("File is not there anymore. Removing it from list.");
+                    RemoveRecentMenuItem(filePath, MRLogsList);
+                    return;
+                }
                 if (CheckIfLogIsDuplicate(filePath, null)) return;
                 if (Path.GetFileName(filePath).Length > 40)
                 {
@@ -413,7 +471,9 @@ namespace Analyze_alarms
                 PrepareWindowForNewFiles(null, filePath);
             }
 
-
+            saveAsToolStripMenuItem.Enabled = true;
+            closeProjectToolStripMenuItem.Enabled = true;
+            fileTabControl.SelectedIndex = 1;
         }
 
         private bool CheckIfLogIsDuplicate(string fileName = "", string[] fileNames = null)
@@ -449,66 +509,6 @@ namespace Analyze_alarms
 
             return duplicates;
         }
-        #endregion
-
-        /// 
-        /// All events here
-        /// 
-        #region Events
-        private void Form1_Load(object sender, EventArgs e)
-        {
-            this.Icon = new Icon(System.Environment.CurrentDirectory + "\\logo.ico");
-            LoadRecentList("\\Data\\RecentLogs.txt");
-            LoadLogSettingsFromFile();
-        }
-
-        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            Application.Exit();
-        }
-
-        private void clearAllToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            fileTabControl.TabPages.Clear();
-            myDataTables.Clear();
-            openedFiles.Clear();
-
-
-        }
-
-        private void openLogsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            OpenLogFile();
-        }
-
-        private void RecentLogs_click(object sender, EventArgs e)
-        {
-            OpenLogFile(sender.ToString());
-        }
-
-        private void logsettingsToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            Settings_Form frm = new Settings_Form();
-            DialogResult dres;
-            dres = frm.ShowDialog();
-            if (dres == DialogResult.OK)
-            {
-                UpdateSettingsXML();
-            }
-
-        }
-
-        private void MainForm_SizeChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        protected void UC_NewLog_Analyze_Button_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        #endregion
 
         private void CreateProjectFile(string filePath, int ucCount, List<string> ucNames)
         {
@@ -526,9 +526,13 @@ namespace Analyze_alarms
                         sw.WriteLine(s);
                     }
                 }
-                openedProjectData = new Project(name.Replace('.', '_').Replace(' ', '_'), ucCount, ucNames);
+                openedProjectData = null;
+                openedProjectData = new Project(name.Replace('.', '_').Replace(' ', '_'), ucCount, ucNames, path);
+                openedProjectData.PropertyChanged += new PropertyChangedEventHandler(isSaved_Valuechanged);
             }
         }
+
+
 
         /// <summary>
         /// 
@@ -561,11 +565,6 @@ namespace Analyze_alarms
             }
         }
 
-        private void PopulateDataTablesFromDB()
-        {
-
-        }
-
         private void ReadFromDB(string projectName)
         {
             Classes.DataBase db = new Classes.DataBase();
@@ -589,49 +588,94 @@ namespace Analyze_alarms
             }
         }
 
-        private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
+        private void SetProjectNameInWindow(string name = "")
         {
-            saveFileDialog1.Filter = "ABECE Project | *.abc;";
-            saveFileDialog1.RestoreDirectory = true;
+            if (name == "" || name == null)
+                this.Text = "ABECE Alarm analyzer";
+            else this.Text = "ABECE Alarm analyzer - " + name;
 
-            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
-            {
-                List<string> slist = new List<string>();
-                foreach (UC_NewLog uc in myUCs)
-                {
-                    slist.Add(uc.Name);
-                }
-
-                CreateProjectFile(Path.GetFileName(saveFileDialog1.FileName), myUCs.Count, slist);
-                
-                SaveToDB(openedProjectData.ProjectName.Replace('.', '_').Replace(' ', '_'));
-                toolStripStatusLabel1.Text = "Project saved.";
-            }
         }
 
-        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        private void SaveProject(bool withDialog, string path = "")
         {
-            if (openedProjectData != null)
+            string savePath = "";
+            if (withDialog)
             {
-                if (openedProjectData.ProjectName != "")
+                saveFileDialog1.Filter = "ABECE Project | *.abc;";
+                saveFileDialog1.RestoreDirectory = true;
+                if (saveFileDialog1.ShowDialog() == DialogResult.OK)
                 {
-                    SaveToDB(openedProjectData.ProjectName.Replace('.', '_').Replace(' ', '_'));
-                    toolStripStatusLabel1.Text = "Project saved.";
+                    if (saveFileDialog1.FileName != null && saveFileDialog1.FileName != "")
+                        savePath = saveFileDialog1.FileName;
+                    else
+                    {
+                        MessageBox.Show("Not a valid path.");
+                        return;
+                    }
                 }
             }
+            else
+            {
+                if (path != null && path != "")
+                    savePath = path;
+                else MessageBox.Show("Not a valid path.");
+            }
+
+            List<string> slist = new List<string>();
+            foreach (UC_NewLog uc in myUCs)
+            {
+                slist.Add(uc.Name);
+                if (uc.myReportFormData == null | uc.myDataTableRowsList == null | uc.mySummary == null)
+                {
+                    MessageBox.Show("No data to save.");
+                    return;
+                }
+            }
+
+            CreateProjectFile(savePath, myUCs.Count, slist);
+            SaveToDB(openedProjectData.ProjectName.Replace('.', '_').Replace(' ', '_'));
+
+            SetProjectNameInWindow(openedProjectData.ProjectName);
+            toolStripStatusLabel1.Text = "Project saved.";
+            saveToolStripMenuItem.Enabled = true;
+            openedProjectData.isSaved = true;
         }
 
-        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        private void OpenProject(string filePath = "")
         {
-            openFileDialog1.Filter = "ABECE Project | *.abc;";
-            openFileDialog1.Multiselect = false;
-            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            if (openedProjectData == null)
             {
+                string filePathToOpen = "";
+                //If filePath == "" then use openfiledialog
+                if (filePath == "")
+                {
+                    openFileDialog1.Filter = "ABECE Project | *.abc;";
+                    openFileDialog1.Multiselect = false;
+                    if (openFileDialog1.ShowDialog() == DialogResult.OK)
+                    {
+                        if (openFileDialog1.FileName != null && openFileDialog1.FileName != "")
+                        {
+                            filePathToOpen = openFileDialog1.FileName;
+                        }
+                    }
+                    else
+                    {
+                        return;
+                    }
+                    SaveRecentFile(filePathToOpen, false, MRProjectsList);
+                }
+                else
+                {
+                    if (File.Exists(filePath))
+                        filePathToOpen = filePath;
+                    else return;
+                }
+
                 string pName = "";
                 int ucCount = 0;
                 List<string> ucNames = new List<string>();
 
-                List<string> s = ReadProjectFile(openFileDialog1.FileName);
+                List<string> s = ReadProjectFile(filePathToOpen);
 
                 pName = s[0].ToString();
                 ucCount = int.Parse(s[1].ToString());
@@ -639,20 +683,27 @@ namespace Analyze_alarms
                 {
                     ucNames.Add(s[i].ToString());
                 }
-            
+
 
                 if (pName != "")
                 {
                     //Fill the project data file
-                    openedProjectData = new Project(pName, ucCount, ucNames);
+                    openedProjectData = new Project(pName, ucCount, ucNames, filePathToOpen);
+                    openedProjectData.PropertyChanged += new PropertyChangedEventHandler(isSaved_Valuechanged);
                     //Create new Usercontrols for each name specified in project file
                     InsertNewUCFromSave(openedProjectData);
                     //Get the data from the DB and ReadFromDB will populate the usercontrols
                     ReadFromDB(openedProjectData.ProjectName.Replace('.', '_').Replace(' ', '_'));
-                    
+
                 }
+                SetProjectNameInWindow(openedProjectData.ProjectName);
                 toolStripStatusLabel1.Text = "Project loaded.";
-            }            
+                saveToolStripMenuItem.Enabled = true;
+                saveAsToolStripMenuItem.Enabled = true;
+                closeProjectToolStripMenuItem.Enabled = true;
+                fileTabControl.SelectedIndex = 1;
+                openedProjectData.isSaved = true;
+            }
         }
 
         private void PopulateUCData(UC_NewLog uc, List<Summary> summary, ReportFormData reportFormData, List<DataTableRowClass> dataRowsList, List<AnalyzedRows> analyzedRows)
@@ -660,6 +711,7 @@ namespace Analyze_alarms
             //Will populate controls and init data.
             uc.PopulateDataFromDB(summary, reportFormData, dataRowsList, analyzedRows);
         }
+
         private void InsertNewUCFromSave(Project project)
         {
             myUCs.Clear();
@@ -672,6 +724,86 @@ namespace Analyze_alarms
                 tab.Controls.Add(myUCs[myUCs.Count - 1]);
                 fileTabControl.TabPages.Add(tab);                
             }                        
+        }
+        #endregion
+
+        /// 
+        /// All events here
+        /// 
+        #region Events
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            this.Icon = new Icon(System.Environment.CurrentDirectory + "\\logo.ico");
+            LoadRecentMRUList("\\Data\\RecentLogs.txt", MRLogsList, true);
+            LoadRecentMRUList("\\Data\\RecentProjects.txt", MRProjectsList, false);
+            LoadLogSettingsFromFile();
+            pictureBox1.Image = Image.FromFile(Environment.CurrentDirectory + "\\logo.png");
+        }
+
+        private void isSaved_Valuechanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (openedProjectData.isSaved)
+                saveToolStripMenuItem.Enabled = false;
+            else
+                saveToolStripMenuItem.Enabled = true;
+        }
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void openLogsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenLogFile();
+        }
+
+        private void RecentLogs_click(object sender, EventArgs e)
+        {
+            OpenLogFile(sender.ToString());
+        }
+
+        private void RecentProjects_click(object sender, EventArgs e)
+        {
+            OpenProject(sender.ToString());
+        }
+
+        private void logsettingsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Settings_Form frm = new Settings_Form();
+            DialogResult dres;
+            dres = frm.ShowDialog();
+            if (dres == DialogResult.OK)
+            {
+                UpdateSettingsXML();
+            }
+
+        }    
+        
+        private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (myUCs.Count == 0)
+            {
+                MessageBox.Show("Nothing to save yet.");
+                return;
+            }
+            SaveProject(true);
+        }
+
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        {           
+            if (openedProjectData != null && openedProjectData.ProjectName != null && openedProjectData.ProjectName != "")
+            {
+                SaveProject(false, openedProjectData.FilePath);
+            }
+            else
+            {
+                MessageBox.Show("Nothing to save yet.");
+            }
+        }
+
+        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenProject();
         }
 
         private void toolStripStatusLabel1_TextChanged(object sender, EventArgs e)
@@ -689,5 +821,32 @@ namespace Analyze_alarms
             t.Stop();
             t.Dispose();
         }
+
+        private void closeProjectToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (fileTabControl.TabPages.Count > 1)
+            {
+                for (int i = 1; i < fileTabControl.TabPages.Count; i++)
+                {
+                    fileTabControl.TabPages.RemoveAt(i);
+                }
+                myDataTables.Clear();
+                openedFiles.Clear();
+                myUCs.Clear();
+                saveToolStripMenuItem.Enabled = false;
+                saveAsToolStripMenuItem.Enabled = false;
+                closeProjectToolStripMenuItem.Enabled = false;
+                openedProjectData = null;
+                SetProjectNameInWindow();
+            }
+        }
+
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Forms.About frm = new Forms.About();
+            frm.Show();
+        }
+        #endregion
+
     }
 }

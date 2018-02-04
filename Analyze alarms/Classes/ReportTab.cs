@@ -57,7 +57,8 @@ namespace Analyze_alarms.Classes
             tb_ReportHeader.Leave += new EventHandler(tb_ReportHeader_Leave);
 
             if (!fromDB) tb_ReportHeader.Text = "Report header...";
-            else tb_ReportHeader.Text = rpData.tb_Header_Text;
+            else if (rpData.tb_Header_Text != "" && rpData.tb_Header_Text != null) tb_ReportHeader.Text = rpData.tb_Header_Text;
+            else tb_ReportHeader.Text = "Report header...";
 
             tb_ReportHeader.MaxLength = 35;
             tb_ReportHeader.Size = controlSize;
@@ -80,7 +81,11 @@ namespace Analyze_alarms.Classes
             dtp_Report.Format = DateTimePickerFormat.Short;
 
             if (!fromDB) dtp_Report.Value = DateTime.Now;
-            else dtp_Report.Value = rpData.dtp_ReportDate;
+            else if (rpData.dtp_ReportDate != DateTime.MinValue)
+            {
+                dtp_Report.Value = rpData.dtp_ReportDate;
+            }
+            else dtp_Report.Value = DateTime.Now;
 
             dtp_Report.Size = controlSize;
             dtp_Report.Location = new Point(lbl_Date.Location.X, lbl_Date.Location.Y + lbl_Date.Height);
@@ -101,7 +106,8 @@ namespace Analyze_alarms.Classes
             tb_ReportFrom.Leave += new EventHandler(tb_ReportFrom_Leave);
 
             if (!fromDB) tb_ReportFrom.Text = "Report from...";
-            else tb_ReportFrom.Text = rpData.tb_ReportFrom_Text;
+            else if (rpData.tb_ReportFrom_Text != "" && rpData.tb_ReportFrom_Text != null) tb_ReportFrom.Text = rpData.tb_ReportFrom_Text;
+            else tb_ReportFrom.Text = "Report from...";
 
             tb_ReportFrom.MaxLength = 35;
             tb_ReportFrom.Size = controlSize;
@@ -123,7 +129,8 @@ namespace Analyze_alarms.Classes
             tb_ReportBy.Leave += new EventHandler(tb_ReportBy_Leave);
 
             if (!fromDB) tb_ReportBy.Text = "Report done by...";
-            else tb_ReportBy.Text = rpData.tb_ReportBy_Text;
+            else if (rpData.tb_ReportBy_Text != "" && rpData.tb_ReportBy_Text != null) tb_ReportBy.Text = rpData.tb_ReportBy_Text;
+            else tb_ReportBy.Text = "Report done by...";
 
             tb_ReportBy.Size = controlSize;
             tb_ReportBy.Location = new Point(lbl_ReportBy.Location.X, lbl_ReportBy.Location.Y + lbl_ReportBy.Height);
@@ -263,7 +270,7 @@ namespace Analyze_alarms.Classes
             pb_CustomLogo.BorderStyle = BorderStyle.FixedSingle;
 
             if (!fromDB) pb_CustomLogo.Image = Image.FromFile(System.Environment.CurrentDirectory + "\\logo.png");
-            else if (rpData.customLogoPath != "" || rpData.customLogoPath != null) pb_CustomLogo.Image = Image.FromFile(rpData.customLogoPath);
+            else if (rpData.customLogoPath != "" && rpData.customLogoPath != null) pb_CustomLogo.Image = Image.FromFile(rpData.customLogoPath);
             else pb_CustomLogo.Image = Image.FromFile(System.Environment.CurrentDirectory + "\\logo.png");
 
             pb_CustomLogo.Size = new Size(50, 30);

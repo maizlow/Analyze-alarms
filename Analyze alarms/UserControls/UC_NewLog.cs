@@ -67,8 +67,7 @@ namespace Analyze_alarms
         #region FUNCTIONS
 
         public void Init(DataTable data)
-        {
-            
+        {            
             InitDataTable(data);
             InitDateTimePickers();
             this.Dock = DockStyle.Fill;
@@ -428,16 +427,18 @@ namespace Analyze_alarms
             mySummary.Sort((a, b) => TimeSpan.Compare(b.stopDuration, a.stopDuration));
             //Bind the list to BindingList and then create a source, this ensure any editing in the DGV will
             //be reflected back to the list.
-            var bindingList = new BindingList<Classes.Summary>(mySummary);
+            var bindingList = new BindingList<Summary>(mySummary);
             var source = new BindingSource(bindingList, null);
-
+            
             dataGridView2.DataSource = source;
             dataGridView2.RowHeadersVisible = false;
             dataGridView2.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            dataGridView2.Columns[0].HeaderText = "Message nr.";
-            dataGridView2.Columns[1].HeaderText = "Message text";
-            dataGridView2.Columns[2].HeaderText = "Amount of stops";
-            dataGridView2.Columns[3].HeaderText = "Total stop time";
+            dataGridView2.Columns[0].Visible = false;
+            dataGridView2.Columns[1].HeaderText = "Message nr.";
+            dataGridView2.Columns[2].HeaderText = "Message text";
+            dataGridView2.Columns[3].HeaderText = "Amount of stops";
+            dataGridView2.Columns[4].HeaderText = "Total stop time";
+            dataGridView2.Columns[5].Visible = false;
             dataGridView2.AllowUserToResizeRows = false;
 
             int TotalAmountOfStops = 0;
@@ -579,11 +580,6 @@ namespace Analyze_alarms
             tabControl1.TabPages.Add(tp_Report);
         }
 
-        private void LoadFromDBToControlsInReportTab(TabPage tp_Report)
-        {
-
-        }
-
         public void StartCreatePDFReport(Classes.ReportTab rd)
         {
             generator = new ReportGenerator(this, rd);
@@ -649,19 +645,19 @@ namespace Analyze_alarms
 
         //TODO: DEGUG ONLY
         private void dataGridView1_RowPostPaint(object sender, DataGridViewRowPostPaintEventArgs e)
-        {
-            var grid = sender as DataGridView;
-            var rowIdx = (e.RowIndex).ToString();
+        {            
+            //var grid = sender as DataGridView;
+            //var rowIdx = (e.RowIndex).ToString();
 
-            var centerFormat = new StringFormat()
-            {
-                // right alignment might actually make more sense for numbers
-                Alignment = StringAlignment.Center,
-                LineAlignment = StringAlignment.Center
-            };
+            //var centerFormat = new StringFormat()
+            //{
+            //    // right alignment might actually make more sense for numbers
+            //    Alignment = StringAlignment.Center,
+            //    LineAlignment = StringAlignment.Center
+            //};
 
-            var headerBounds = new Rectangle(e.RowBounds.Left, e.RowBounds.Top, grid.RowHeadersWidth, e.RowBounds.Height);
-            e.Graphics.DrawString(rowIdx, this.Font, SystemBrushes.ControlText, headerBounds, centerFormat);
+            //var headerBounds = new Rectangle(e.RowBounds.Left, e.RowBounds.Top, grid.RowHeadersWidth, e.RowBounds.Height);
+            //e.Graphics.DrawString(rowIdx, this.Font, SystemBrushes.ControlText, headerBounds, centerFormat);
         }
 
         private void OnPieBtnClick(object sender, EventArgs e)
@@ -697,6 +693,8 @@ namespace Analyze_alarms
             {
                 ColorDGVRow(y, Form.DefaultBackColor, dataGridView1);
             }
+
+            if (parent.openedProjectData != null) parent.openedProjectData.isSaved = false;
         }
 
         protected void dTP_From_ValueChanged(object sender, EventArgs e)
@@ -728,6 +726,7 @@ namespace Analyze_alarms
             Cursor = Cursors.Default;
 
             tabControl1.SelectedIndex = 2;
+            if (parent.openedProjectData != null) parent.openedProjectData.isSaved = false;
         }
 
         private void UC_NewLog_Load(object sender, EventArgs e)
@@ -742,6 +741,11 @@ namespace Analyze_alarms
             {
                 dataGridView2.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.AntiqueWhite;
             }
+        }
+
+        private void dataGridView2_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
+        {
+            if (parent.openedProjectData != null) parent.openedProjectData.isSaved = false;
         }
 
         private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)

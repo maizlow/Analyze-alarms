@@ -355,6 +355,7 @@
             this.dataGridView2.Size = new System.Drawing.Size(581, 351);
             this.dataGridView2.TabIndex = 1;
             this.dataGridView2.Visible = false;
+            this.dataGridView2.CellBeginEdit += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.dataGridView2_CellBeginEdit);
             this.dataGridView2.RowPrePaint += new System.Windows.Forms.DataGridViewRowPrePaintEventHandler(this.dataGridView2_RowPrePaint);
             // 
             // label3
