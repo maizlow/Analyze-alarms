@@ -18,8 +18,6 @@ namespace Analyze_alarms
 {
     public partial class MainForm : Form
     {
-        string openedProjectName = "";
-
         Project openedProjectData = new Project();
         static List<DataTable> myDataTables = new List<DataTable>();
         private List<UC_NewLog> myUCs = new List<UC_NewLog>();
@@ -48,7 +46,7 @@ namespace Analyze_alarms
         {
             SaveRecentLogFile(filePath);
             //Add tabpage with date as name
-            string fileTabText = GetDateFromString(filePath).ToString();
+            string fileTabText = Path.GetFileName(filePath.Remove(filePath.Length-4)).Replace('.', '_').Replace(' ', '_').Replace('-', '_');
             fileTabText = CheckIfDuplicateDate(fileTabText);
 
             TabPage tab = new TabPage();
@@ -390,7 +388,14 @@ namespace Analyze_alarms
                     if (openFileDialog1.FileNames != null)
                     {
                         if (CheckIfLogIsDuplicate("", openFileDialog1.FileNames)) return;
-
+                        foreach (string s in openFileDialog1.FileNames)
+                        {
+                            if (Path.GetFileName(s).Length > 40)
+                            {
+                                MessageBox.Show("Filename is too long, we only allow a maximum of 40 characters.");
+                                return;
+                            }
+                        }
                         openedFiles.AddRange(openFileDialog1.FileNames);
                         PrepareWindowForNewFiles(openFileDialog1.FileNames, "");
                     }
@@ -399,7 +404,11 @@ namespace Analyze_alarms
             else
             {
                 if (CheckIfLogIsDuplicate(filePath, null)) return;
-
+                if (Path.GetFileName(filePath).Length > 40)
+                {
+                    MessageBox.Show("Filename is too long, we only allow a maximum of 40 characters.");
+                    return;
+                }
                 openedFiles.Add(filePath);
                 PrepareWindowForNewFiles(null, filePath);
             }
@@ -517,7 +526,7 @@ namespace Analyze_alarms
                         sw.WriteLine(s);
                     }
                 }
-                openedProjectData = new Project(name.Replace('.', '_'), ucCount, ucNames);
+                openedProjectData = new Project(name.Replace('.', '_').Replace(' ', '_'), ucCount, ucNames);
             }
         }
 
@@ -545,9 +554,10 @@ namespace Analyze_alarms
             Classes.DataBase db = new Classes.DataBase();
             foreach (UC_NewLog uc in myUCs)
             {
-                db.SaveSummaryData(uc.mySummary, projectName + "_summaryData_" + uc.Name);
-                db.SaveReportData(uc.myReportFormData, projectName + "_reportData_" + uc.Name);
-                db.SaveDataTable(uc.myDataTableRowsList, projectName + "_dataTable_" + uc.Name);
+                db.SaveSummaryData(uc.mySummary, projectName + "_sData_" + uc.Name);
+                db.SaveReportData(uc.myReportFormData, projectName + "_rData_" + uc.Name);
+                db.SaveDataTable(uc.myDataTableRowsList, projectName + "_dTable_" + uc.Name);
+                db.SaveAnalyzedRows(uc.analyzedRows, projectName + "_aRows_" + uc.Name);
             }
         }
 
@@ -564,15 +574,17 @@ namespace Analyze_alarms
                 List<Summary> summary = new List<Summary>();
                 ReportFormData reportFormData = new ReportFormData();
                 List<DataTableRowClass> dataTableRowsList = new List<DataTableRowClass>();
+                List<AnalyzedRows> analyzedRows = new List<AnalyzedRows>();
 
                 foreach (UC_NewLog uc in myUCs)
                 {
-                    summary= db.LoadSummaryData(projectName + "_summaryData_" + uc.Name);
-                    reportFormData = db.LoadReportData(projectName + "_reportData_" + uc.Name);
-                    dataTableRowsList = db.LoadDataTablesData(projectName + "_dataTable_" + uc.Name);
+                    summary= db.LoadSummaryData(projectName + "_sData_" + uc.Name);
+                    reportFormData = db.LoadReportData(projectName + "_rData_" + uc.Name);
+                    dataTableRowsList = db.LoadDataTablesData(projectName + "_dTable_" + uc.Name);
+                    analyzedRows = db.LoadAnalyzedRowsData(projectName + "_aRows_" + uc.Name);
 
                     //Populate Usercontrols data
-                    PopulateUCData(uc, summary, reportFormData, dataTableRowsList);
+                    PopulateUCData(uc, summary, reportFormData, dataTableRowsList, analyzedRows);
                 }
             }
         }
@@ -592,17 +604,20 @@ namespace Analyze_alarms
 
                 CreateProjectFile(Path.GetFileName(saveFileDialog1.FileName), myUCs.Count, slist);
                 
-                SaveToDB(openedProjectData.ProjectName);
+                SaveToDB(openedProjectData.ProjectName.Replace('.', '_').Replace(' ', '_'));
                 toolStripStatusLabel1.Text = "Project saved.";
             }
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (openedProjectName != "")
+            if (openedProjectData != null)
             {
-                SaveToDB(openedProjectName);
-                toolStripStatusLabel1.Text = "Project saved.";
+                if (openedProjectData.ProjectName != "")
+                {
+                    SaveToDB(openedProjectData.ProjectName.Replace('.', '_').Replace(' ', '_'));
+                    toolStripStatusLabel1.Text = "Project saved.";
+                }
             }
         }
 
@@ -631,21 +646,21 @@ namespace Analyze_alarms
                     //Fill the project data file
                     openedProjectData = new Project(pName, ucCount, ucNames);
                     //Create new Usercontrols for each name specified in project file
-                    InserNewUCFromSave(openedProjectData);
+                    InsertNewUCFromSave(openedProjectData);
                     //Get the data from the DB and ReadFromDB will populate the usercontrols
-                    ReadFromDB(openedProjectData.ProjectName.Replace('.', '_'));
+                    ReadFromDB(openedProjectData.ProjectName.Replace('.', '_').Replace(' ', '_'));
                     
                 }
                 toolStripStatusLabel1.Text = "Project loaded.";
             }            
         }
 
-        private void PopulateUCData(UC_NewLog uc, List<Summary> summary, ReportFormData reportFormData, List<DataTableRowClass> dataRowsList)
+        private void PopulateUCData(UC_NewLog uc, List<Summary> summary, ReportFormData reportFormData, List<DataTableRowClass> dataRowsList, List<AnalyzedRows> analyzedRows)
         {
             //Will populate controls and init data.
-            uc.PopulateData(summary, reportFormData, dataRowsList);
+            uc.PopulateDataFromDB(summary, reportFormData, dataRowsList, analyzedRows);
         }
-        private void InserNewUCFromSave(Project project)
+        private void InsertNewUCFromSave(Project project)
         {
             myUCs.Clear();
             foreach(string name in project.UserControlNames)

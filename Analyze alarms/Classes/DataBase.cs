@@ -11,11 +11,16 @@ namespace Analyze_alarms.Classes
     {
         private string dbPath = System.Environment.CurrentDirectory + "\\Data\\localdb.db";
         
+        #region SAVE
         public void SaveDataTable(List<DataTableRowClass> data, string colName)
         {
             if (!CheckIfCollectionExists(colName)) InsertDatatable(data, colName);
         }
 
+        public void SaveAnalyzedRows(List<AnalyzedRows> data, string colName)
+        {
+            if (!CheckIfCollectionExists(colName)) InsertAnalyzedRows(data, colName);
+        }
 
         /// <summary>
         /// Will save to a new Collection if colName don't exists, otherwise it will update the existing one.
@@ -39,6 +44,9 @@ namespace Analyze_alarms.Classes
             else InsertReportData(rData, colName);
         }
 
+        #endregion
+
+        #region LOAD
         /// <summary>
         /// Loads and return a list of all data entrys
         /// </summary>
@@ -48,6 +56,13 @@ namespace Analyze_alarms.Classes
         {
             if (CheckIfCollectionExists(colName))
                 return ReadDataTableData(colName);
+            else return null;
+        }
+
+        public List<AnalyzedRows> LoadAnalyzedRowsData(string colName)
+        {
+            if (CheckIfCollectionExists(colName))
+                return ReadAnalyzedRowsData(colName);
             else return null;
         }
 
@@ -75,6 +90,10 @@ namespace Analyze_alarms.Classes
             else return null;
         }
 
+        #endregion
+
+        #region Private functions
+
         /// <summary>
         /// Check database for an existing document
         /// </summary>
@@ -87,6 +106,7 @@ namespace Analyze_alarms.Classes
                 return db.CollectionExists(colName);
             }
         }
+
 
         /// <summary>
         /// Updates an existing documents entrys
@@ -120,6 +140,7 @@ namespace Analyze_alarms.Classes
             }
         }
 
+
         /// <summary>
         /// Insert the datatable in a collection
         /// </summary>
@@ -135,6 +156,32 @@ namespace Analyze_alarms.Classes
 
 
                 foreach (DataTableRowClass dtrc in data)
+                {
+
+                    col.Insert(dtrc);
+
+                }
+
+                //Create index
+                col.EnsureIndex("Id");
+            }
+        }
+
+        /// <summary>
+        /// Insert the analyzed rows in a collection
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="colName"></param>
+        private void InsertAnalyzedRows(List<AnalyzedRows> data, string colName)
+        {
+            // Open database (or create if doesn't exist)
+            using (var db = new LiteDatabase(dbPath))
+            {
+                // Get a collection (or create, if doesn't exist)
+                var col = db.GetCollection<AnalyzedRows>(colName);
+
+
+                foreach (AnalyzedRows dtrc in data)
                 {
 
                     col.Insert(dtrc);
@@ -190,7 +237,7 @@ namespace Analyze_alarms.Classes
         }
         
         /// <summary>
-        /// 
+        /// Reads data table data and returns it
         /// </summary>
         /// <param name="colName"></param>
         /// <returns></returns>
@@ -203,6 +250,27 @@ namespace Analyze_alarms.Classes
                 var result = col.FindAll().ToList();
                 List<DataTableRowClass> summary = new List<DataTableRowClass>();
                 foreach (DataTableRowClass s in result)
+                {
+                    summary.Add(s);
+                }
+                return summary;
+            }
+        }
+
+        /// <summary>
+        /// Reads data from collection AnalyzedRows
+        /// </summary>
+        /// <param name="colName"></param>
+        /// <returns></returns>
+        private List<AnalyzedRows> ReadAnalyzedRowsData(string colName)
+        {
+            using (var db = new LiteDatabase(dbPath))
+            {
+                var col = db.GetCollection<AnalyzedRows>(colName);
+                col.EnsureIndex("Id", true);
+                var result = col.FindAll().ToList();
+                List<AnalyzedRows> summary = new List<AnalyzedRows>();
+                foreach (AnalyzedRows s in result)
                 {
                     summary.Add(s);
                 }
@@ -240,10 +308,17 @@ namespace Analyze_alarms.Classes
             {
                 var col = db.GetCollection<ReportFormData>(colName);
                 col.EnsureIndex("Id", true);
-                var result = col.FindAll().ToArray();
+                var result = col.FindAll().ToList();
+                List<ReportFormData> rlist = new List<ReportFormData>();
+                foreach(ReportFormData r in result)
+                {
+                    rlist.Add(r);
+                }
 
-                return (ReportFormData)result[0];
+                return rlist[0];
             }
         }
+
+        #endregion
     }
 }

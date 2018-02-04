@@ -21,8 +21,9 @@ namespace Analyze_alarms
         TimeSpan runTime = new TimeSpan();
 
         public List<Summary> mySummary = new List<Classes.Summary>();
-        public ReportFormData myReportFormData = new Classes.ReportFormData();
+        public ReportFormData myReportFormData;// = new Classes.ReportFormData();
         public List<DataTableRowClass> myDataTableRowsList = new List<Classes.DataTableRowClass>();
+        public List<AnalyzedRows> analyzedRows = new List<AnalyzedRows>();
 
         private int nrOfSummaryEntrys;
         private TabPage tp_Report;
@@ -74,17 +75,24 @@ namespace Analyze_alarms
             pictureBox1.Image = new Bitmap(System.Environment.CurrentDirectory + "\\ChartBackground2.png");
         }
 
-        public void PopulateData(List<Classes.Summary> summaryList, ReportFormData reportFormData, List<DataTableRowClass> dataRowList)
+        public void PopulateDataFromDB(List<Classes.Summary> summaryList, ReportFormData reportFormData, List<DataTableRowClass> dataRowList, List<AnalyzedRows> analyzedRows)
         {
             this.mySummary = summaryList;
             this.myReportFormData = reportFormData;
             this.myDataTableRowsList = dataRowList;
+            this.analyzedRows = analyzedRows;
+
             this.data = ConvertDataClassToDataTable(myDataTableRowsList);
             Init(data);
 
+            foreach (AnalyzedRows a in analyzedRows)
+            {
+                ColorDGVRow(a.rowNr, Color.FromArgb(a.color), dataGridView1);
+            }
+
             CreateSummaryTab();
             CreateDiagramTab();
-            CreateReportTab();
+            CreateReportTab(true);
         }
 
         private void InitDateTimePickers()
@@ -154,7 +162,7 @@ namespace Analyze_alarms
 
         private void ColorDGVRow(int Index, Color color, DataGridView dgv)
         {
-            dgv.Rows[Index].DefaultCellStyle.BackColor = color;
+            if (Index < dgv.Rows.Count) dgv.Rows[Index].DefaultCellStyle.BackColor = color;            
         }
 
         private void GetLogBitSettings()
@@ -236,6 +244,7 @@ namespace Analyze_alarms
                         if (Convert.ToBoolean(dr["StateAfter"]))
                         {
                             ColorDGVRow(data.Rows.IndexOf(dr), Color.LightGreen, dataGridView1);
+                            analyzedRows.Add(new AnalyzedRows(data.Rows.IndexOf(dr), Color.LightGreen));
 
                             //Get startTime
                             startTime = DateTime.Parse(dr["TimeString"].ToString());
@@ -248,6 +257,7 @@ namespace Analyze_alarms
                         else
                         {
                             ColorDGVRow(data.Rows.IndexOf(dr), Color.OrangeRed, dataGridView1);
+                            analyzedRows.Add(new AnalyzedRows(data.Rows.IndexOf(dr), Color.OrangeRed));
 
                             //Get stopTime
                             stopTime = DateTime.Parse(dr["TimeString"].ToString());
@@ -359,6 +369,7 @@ namespace Analyze_alarms
 
 
                                     ColorDGVRow(stopCauseRow, Color.Yellow, dataGridView1);
+                                    analyzedRows.Add(new AnalyzedRows(stopCauseRow, Color.Yellow));
                                 }
 
                                 if (StopCauseMsgNumber > 0)
@@ -372,7 +383,9 @@ namespace Analyze_alarms
                                         newSum.MsgNumber = StopCauseMsgNumber;
                                         newSum.MsgText = StopCauseMsgText;
                                         newSum.stopDuration += stopDuration;
+                                        newSum.runTime += runTime;
                                         mySummary.Add(newSum);
+                                        runTime = TimeSpan.Zero;
                                     }
                                     else
                                     {
@@ -380,6 +393,8 @@ namespace Analyze_alarms
                                         sum.MsgNumber = StopCauseMsgNumber;
                                         sum.MsgText = StopCauseMsgText;
                                         sum.stopDuration += stopDuration;
+                                        sum.runTime += runTime;
+                                        runTime = TimeSpan.Zero;
                                     }
                                 }
                             }
@@ -436,13 +451,14 @@ namespace Analyze_alarms
             {
                 TotalAmountOfStops += s.Amount;
                 TotalStopTime += s.stopDuration;
+                TotalRunTime += s.runTime;
                 nrOfSummaryEntrys++;
             }
 
             lbl_AmountOfStops.Text = TotalAmountOfStops.ToString();
             lbl_StopTime.Text = string.Format("{0:hh\\:mm\\:ss}", TotalStopTime);
-            lbl_Runtime.Text = string.Format("{0:hh\\:mm\\:ss}", runTime);
-            lbl_TotalTime.Text = string.Format("{0:hh\\:mm\\:ss}", TotalStopTime + runTime);
+            lbl_Runtime.Text = string.Format("{0:hh\\:mm\\:ss}", TotalRunTime);
+            lbl_TotalTime.Text = string.Format("{0:hh\\:mm\\:ss}", TotalStopTime + TotalRunTime);
             //TODO: Implement shift functionality
             lbl_TotalActiveShiftTime.Text = "";
 
@@ -543,19 +559,34 @@ namespace Analyze_alarms
 
         }
 
-        private void CreateReportTab()
+        private void CreateReportTab(bool fromDB = false)
         {
-            myReportFormData = new Classes.ReportFormData();
-            var reportData = new Classes.ReportData(this, myReportFormData);
+            ReportTab reportData;
+            if (myReportFormData != null)
+                reportData = new ReportTab(this, myReportFormData);
+            else
+            {
+                myReportFormData = new ReportFormData();
+                reportData = new ReportTab(this, myReportFormData);
+            }     
+            
+            if (!fromDB) tp_Report = reportData.CreateTabPage();
+            else tp_Report = reportData.CreateTabPage(fromDB);
 
-            tp_Report = reportData.CreateTabPage();
+            //TODO: Fill controls with data from DB if loaded that way
+
 
             tabControl1.TabPages.Add(tp_Report);
         }
 
-        public void StartCreatePDFReport(Classes.ReportData rd)
+        private void LoadFromDBToControlsInReportTab(TabPage tp_Report)
         {
-            generator = new Classes.ReportGenerator(this, rd);
+
+        }
+
+        public void StartCreatePDFReport(Classes.ReportTab rd)
+        {
+            generator = new ReportGenerator(this, rd);
 
             Cursor = Cursors.WaitCursor;
 
@@ -576,7 +607,7 @@ namespace Analyze_alarms
             }
         }
 
-        private void paintChartFormDone(ref Classes.ReportGenerator generator, ref Classes.ReportData rd)
+        private void paintChartFormDone(ref Classes.ReportGenerator generator, ref Classes.ReportTab rd)
         {
 
             if (rowChart != null)
@@ -591,11 +622,13 @@ namespace Analyze_alarms
             GenerateReport(ref rd);
         }
 
-        private void GenerateReport(ref Classes.ReportData rd)
+        private void GenerateReport(ref Classes.ReportTab rd)
         {
-            var filepath = generator.Generate(rd.saveReportFilePath);
-
-            Process.Start(filepath);
+            if (rd.saveReportFilePath != null)
+            {
+                var filepath = generator.Generate(rd.saveReportFilePath);
+                Process.Start(filepath);                
+            }
             Cursor = Cursors.Default;
         }
 
@@ -658,6 +691,11 @@ namespace Analyze_alarms
                         data.Rows[i].Delete();
                     }
                 }
+            }
+
+            for(int y = 0; y < data.Rows.Count - 1; y++)
+            {
+                ColorDGVRow(y, Form.DefaultBackColor, dataGridView1);
             }
         }
 

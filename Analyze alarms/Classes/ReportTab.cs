@@ -9,9 +9,9 @@ using System.ComponentModel;
 namespace Analyze_alarms.Classes
 {
 
-    public class ReportData
+    public class ReportTab
     {
-        private ReportFormData rpData;
+        public ReportFormData rpData;
         private UC_NewLog myUC;
         private TabPage tp_Report;
         public string saveReportFilePath;
@@ -19,7 +19,7 @@ namespace Analyze_alarms.Classes
         public OpenFileDialog openDialog;
         public Forms.PaintCharts paintChartsForm;
 
-        public ReportData(UC_NewLog userControl, ReportFormData RFD)
+        public ReportTab(UC_NewLog userControl, ReportFormData RFD)
         {
             this.myUC = userControl;
             rpData = RFD;
@@ -29,7 +29,7 @@ namespace Analyze_alarms.Classes
         /// Generates all tabpage controls
         /// </summary>
         /// <returns>The tabpage</returns>
-        public TabPage CreateTabPage()
+        public TabPage CreateTabPage(bool fromDB = false)
         {
             Size controlSize = new Size(244, 20);
             Font fontStyleBold = new Font(Label.DefaultFont, FontStyle.Bold);
@@ -44,7 +44,7 @@ namespace Analyze_alarms.Classes
 
             //Header label
             var lbl_Header = new Label();
-            lbl_Header.Text = "Report header";
+            lbl_Header.Text = "Report header";            
             lbl_Header.Font = fontStyleBold;
             lbl_Header.AutoSize = false;
             lbl_Header.Size = controlSize;
@@ -55,7 +55,10 @@ namespace Analyze_alarms.Classes
             var tb_ReportHeader = new TextBox();
             tb_ReportHeader.Enter += new EventHandler(tb_ReportHeader_Enter);
             tb_ReportHeader.Leave += new EventHandler(tb_ReportHeader_Leave);
-            tb_ReportHeader.Text = "Report header...";
+
+            if (!fromDB) tb_ReportHeader.Text = "Report header...";
+            else tb_ReportHeader.Text = rpData.tb_Header_Text;
+
             tb_ReportHeader.MaxLength = 35;
             tb_ReportHeader.Size = controlSize;
             tb_ReportHeader.Location = new Point(lbl_Header.Location.X, lbl_Header.Location.Y + lbl_Header.Height);
@@ -75,7 +78,10 @@ namespace Analyze_alarms.Classes
             var dtp_Report = new DateTimePicker();
             dtp_Report.ValueChanged += new EventHandler(dtp_Report_ValueChanged);
             dtp_Report.Format = DateTimePickerFormat.Short;
-            dtp_Report.Value = DateTime.Now;
+
+            if (!fromDB) dtp_Report.Value = DateTime.Now;
+            else dtp_Report.Value = rpData.dtp_ReportDate;
+
             dtp_Report.Size = controlSize;
             dtp_Report.Location = new Point(lbl_Date.Location.X, lbl_Date.Location.Y + lbl_Date.Height);
             tp_Report.Controls.Add(dtp_Report);
@@ -93,7 +99,10 @@ namespace Analyze_alarms.Classes
             var tb_ReportFrom = new TextBox();
             tb_ReportFrom.Enter += new EventHandler(tb_ReportFrom_Enter);
             tb_ReportFrom.Leave += new EventHandler(tb_ReportFrom_Leave);
-            tb_ReportFrom.Text = "Report from...";
+
+            if (!fromDB) tb_ReportFrom.Text = "Report from...";
+            else tb_ReportFrom.Text = rpData.tb_ReportFrom_Text;
+
             tb_ReportFrom.MaxLength = 35;
             tb_ReportFrom.Size = controlSize;
             tb_ReportFrom.Location = new Point(lbl_ReportFrom.Location.X, lbl_ReportFrom.Location.Y + lbl_ReportFrom.Height);
@@ -112,7 +121,10 @@ namespace Analyze_alarms.Classes
             var tb_ReportBy = new TextBox();
             tb_ReportBy.Enter += new EventHandler(tb_ReportBy_Enter);
             tb_ReportBy.Leave += new EventHandler(tb_ReportBy_Leave);
-            tb_ReportBy.Text = "Report done by...";
+
+            if (!fromDB) tb_ReportBy.Text = "Report done by...";
+            else tb_ReportBy.Text = rpData.tb_ReportBy_Text;
+
             tb_ReportBy.Size = controlSize;
             tb_ReportBy.Location = new Point(lbl_ReportBy.Location.X, lbl_ReportBy.Location.Y + lbl_ReportBy.Height);
             tp_Report.Controls.Add(tb_ReportBy);
@@ -129,7 +141,10 @@ namespace Analyze_alarms.Classes
             var chk_RowChart = new CheckBox();
             chk_RowChart.CheckStateChanged += new EventHandler(chk_RowChart_CheckStateChanged);
             chk_RowChart.Text = "Add Row Chart";
-            chk_RowChart.Checked = true;
+
+            if (!fromDB) chk_RowChart.Checked = true;
+            else chk_RowChart.Checked = rpData.chk_RowChart_Checked;
+
             chk_RowChart.AutoSize = true;
             chk_RowChart.Location = new Point(lbl_RowChart.Location.X, lbl_RowChart.Location.Y + lbl_RowChart.Height + 8);
             tp_Report.Controls.Add(chk_RowChart);
@@ -146,7 +161,10 @@ namespace Analyze_alarms.Classes
             var chk_PieChart = new CheckBox();
             chk_PieChart.CheckStateChanged += new EventHandler(chk_PieChart_CheckStateChanged);
             chk_PieChart.Text = "Add Pie Chart";
-            chk_PieChart.Checked = true;
+
+            if (!fromDB) chk_PieChart.Checked = true;
+            else chk_PieChart.Checked = rpData.chk_PieChart_Checked;
+
             chk_PieChart.AutoSize = true;
             chk_PieChart.Location = new Point(chk_RowChart.Location.X + chk_RowChart.Width + 5, chk_RowChart.Location.Y);
             tp_Report.Controls.Add(chk_PieChart);
@@ -163,7 +181,10 @@ namespace Analyze_alarms.Classes
             var chk_Summary = new CheckBox();
             chk_Summary.CheckStateChanged += new EventHandler(chk_Summary_CheckStateChanged);
             chk_Summary.Text = "Add summary";
-            chk_Summary.Checked = true;
+
+            if (!fromDB) chk_Summary.Checked = true;
+            else chk_Summary.Checked = rpData.chk_Summary_Checked;
+
             chk_Summary.AutoSize = true;
             chk_Summary.Location = new Point(lbl_Summary.Location.X, chk_PieChart.Location.Y);
             tp_Report.Controls.Add(chk_Summary);
@@ -180,7 +201,10 @@ namespace Analyze_alarms.Classes
             var tb_Freetext = new TextBox();
             tb_Freetext.Enter += new EventHandler(tb_Freetext_Enter);
             tb_Freetext.Leave += new EventHandler(tb_Freetext_Leave);
-            tb_Freetext.Text = "";
+
+            if (!fromDB) tb_Freetext.Text = "";
+            else tb_Freetext.Text = rpData.tb_FreeText_Text;
+
             tb_Freetext.Multiline = true;
             tb_Freetext.Location = new Point(lbl_FreeText.Location.X, dtp_Report.Location.Y);
             tb_Freetext.Size = new Size(chk_Summary.Location.X + chk_Summary.Width - chk_RowChart.Location.X, tb_ReportBy.Location.Y + tb_ReportBy.Height - tb_Freetext.Location.Y);
@@ -201,8 +225,23 @@ namespace Analyze_alarms.Classes
             //Attachment label
             var lbl_Attachments = new Label();
             lbl_Attachments.Name = "lbl_Attachments";
-            lbl_Attachments.Text = "No attachments.";
-            lbl_Attachments.ForeColor = Color.Red;
+            if (!fromDB) 
+            {
+                lbl_Attachments.Text = "No attachments.";
+                lbl_Attachments.ForeColor = Color.Red;
+            }
+            else if (fromDB && rpData.attachmentsFilePaths != null)
+            {
+                lbl_Attachments.Text = "Attachments loaded.";
+                lbl_Attachments.ForeColor = Color.Green;
+            }
+            else
+            {
+                lbl_Attachments.Text = "No attachments.";
+                lbl_Attachments.ForeColor = Color.Red;
+            }
+
+            
             lbl_Attachments.AutoSize = true;
             lbl_Attachments.Location = new Point(btn_AddAttachments.Location.X + btn_AddAttachments.Width + 10, btn_AddAttachments.Location.Y + 8);
             tp_Report.Controls.Add(lbl_Attachments);
@@ -222,7 +261,11 @@ namespace Analyze_alarms.Classes
             pb_CustomLogo.Name = "pb_CustomLogo";
             pb_CustomLogo.SizeMode = PictureBoxSizeMode.StretchImage;
             pb_CustomLogo.BorderStyle = BorderStyle.FixedSingle;
-            pb_CustomLogo.Image = Image.FromFile(System.Environment.CurrentDirectory + "\\logo.png");
+
+            if (!fromDB) pb_CustomLogo.Image = Image.FromFile(System.Environment.CurrentDirectory + "\\logo.png");
+            else if (rpData.customLogoPath != "" || rpData.customLogoPath != null) pb_CustomLogo.Image = Image.FromFile(rpData.customLogoPath);
+            else pb_CustomLogo.Image = Image.FromFile(System.Environment.CurrentDirectory + "\\logo.png");
+
             pb_CustomLogo.Size = new Size(50, 30);
             pb_CustomLogo.Location = new Point(btn_AddCustomLogo.Location.X + btn_AddCustomLogo.Width + 10, btn_AddCustomLogo.Location.Y);
             tp_Report.Controls.Add(pb_CustomLogo);
@@ -273,7 +316,7 @@ namespace Analyze_alarms.Classes
                     if (image.Width >= image.Height)
                     {
                         img.orientation = false;
-                        new_width = 1024;
+                        new_width = 900;
                         aspect_ratio = (double)bmp.Height / (double)bmp.Width;
                         new_height = aspect_ratio * (double)new_width;
                     }
@@ -299,7 +342,14 @@ namespace Analyze_alarms.Classes
         private void saveDialog_FileOk(object sender, CancelEventArgs e)
         {
             SaveFileDialog s = (SaveFileDialog)sender;
-            saveReportFilePath = s.FileName;            
+            if (s.FileName != null && s.FileName != "")
+            {
+                saveReportFilePath = s.FileName;            
+            }
+            else
+            {
+                saveReportFilePath = null;
+            }
         }
         
         private void btn_AddCustomLogo_Click(object sender, EventArgs e)
@@ -443,7 +493,8 @@ namespace Analyze_alarms.Classes
         private void btn_GenerateReport_Click(object sender, EventArgs e)
         {
             saveDialog.ShowDialog();
-            myUC.StartCreatePDFReport(this);            
+            if(saveDialog.FileName != "")
+                myUC.StartCreatePDFReport(this);            
         }
     }
 }

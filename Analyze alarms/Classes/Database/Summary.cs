@@ -12,5 +12,6 @@ namespace Analyze_alarms.Classes
         public string MsgText { get; set; }
         public int Amount { get; set; }
         public TimeSpan stopDuration { get; set; }
+        public TimeSpan runTime { get; set; }
     }
 }
