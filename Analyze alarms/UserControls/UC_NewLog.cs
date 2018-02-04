@@ -10,57 +10,83 @@ using LiveCharts.Wpf;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Threading;
+using Analyze_alarms.Classes;
 
 namespace Analyze_alarms
 {
     public partial class UC_NewLog : UserControl
     {
-        MainForm parent;
+        private MainForm parent;
         private DataTable data;
         TimeSpan runTime = new TimeSpan();
-        //TODO: This data should be stored for future in DB
-        //Summary data for summary tabpage
-        public List<Classes.Summary> mySummary = new List<Classes.Summary>();
+
+        public List<Summary> mySummary = new List<Classes.Summary>();
+        public ReportFormData myReportFormData = new Classes.ReportFormData();
+        public List<DataTableRowClass> myDataTableRowsList = new List<Classes.DataTableRowClass>();
+
         private int nrOfSummaryEntrys;
         private TabPage tp_Report;
-        private SaveFileDialog saveDialog;
-        private Classes.Charts myCharts = new Classes.Charts();
+        private Charts myCharts = new Classes.Charts();
         public Control rowChart, pieChart;
-        Form paintForm;
-        Classes.ReportGenerator generator;
-        private bool tb_Header_Edited, tb_ReportFrom_Edited, tb_ReportBy_Edited, tb_FreeText_Edited;
-        public string tb_Header_Text = "No text.", tb_ReportFrom_Text = "No text.", tb_ReportBy_Text = "No text.", tb_FreeText_Text = "";
-        public DateTime dtp_ReportDate = DateTime.Now;
-        public bool chk_RowChart_Checked, chk_PieChart_Checked, chk_Summary_Checked;
-        public string saveReportFilePath;
+        ReportGenerator generator;
         private bool paintFormCompleted;
         public bool PaintFormCompleted
         {
             set
             {
                 paintFormCompleted = value;
-                paintChartFormDone(ref generator);
+                paintChartFormDone(ref generator, ref generator.reportData);
             }
 
         }
+        private bool Analyzed;
 
         //First dimension = ClassNr, Second dimension = MessageNr
         private int[] ProdRunning_LB = { 0, 0 };
         private int[] ShiftActive_LB = { 0, 0 };
 
         //Constructor
-        public UC_NewLog(MainForm parent, DataTable data)
+        public UC_NewLog(DataTable data, MainForm parent)
         {
             InitializeComponent();
-
-            this.Parent = parent;
+            this.parent = parent;
             this.data = data;
-            InitDataTable(data);
-            InitDateTimePickers();
-            pictureBox1.Image = new Bitmap(System.Environment.CurrentDirectory + "\\ChartBackground2.png");
+            Init(data);
+            ConvertDataTableToClass(data);
+        }
+
+
+        public UC_NewLog(string controlName, MainForm parent)
+        {
+            InitializeComponent();
+            this.parent = parent;
+            this.Name = controlName;
         }
 
         #region FUNCTIONS
+
+        public void Init(DataTable data)
+        {
+            
+            InitDataTable(data);
+            InitDateTimePickers();
+            this.Dock = DockStyle.Fill;
+            pictureBox1.Image = new Bitmap(System.Environment.CurrentDirectory + "\\ChartBackground2.png");
+        }
+
+        public void PopulateData(List<Classes.Summary> summaryList, ReportFormData reportFormData, List<DataTableRowClass> dataRowList)
+        {
+            this.mySummary = summaryList;
+            this.myReportFormData = reportFormData;
+            this.myDataTableRowsList = dataRowList;
+            this.data = ConvertDataClassToDataTable(myDataTableRowsList);
+            Init(data);
+
+            CreateSummaryTab();
+            CreateDiagramTab();
+            CreateReportTab();
+        }
+
         private void InitDateTimePickers()
         {
             dTP_From.Format = DateTimePickerFormat.Custom;
@@ -75,9 +101,55 @@ namespace Analyze_alarms
             dataGridView1.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.DisableResizing;
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
             dataGridView1.DataSource = data;
-            dataGridView1.Columns[6].Visible = false;
+            dataGridView1.Columns[0].Visible = false;
             dataGridView1.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.EnableResizing;
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;            
+        }
+
+        private void ConvertDataTableToClass(DataTable data)
+        {
+            Classes.DataTableRowClass temp = new Classes.DataTableRowClass();
+            for (int i = 0; i < data.Rows.Count - 1; i++)
+            {
+                temp = new Classes.DataTableRowClass(double.Parse(data.Rows[i].ItemArray[1].ToString()),
+                                                       short.Parse(data.Rows[i].ItemArray[2].ToString()),
+                                                       short.Parse(data.Rows[i].ItemArray[3].ToString()),
+                                                       short.Parse(data.Rows[i].ItemArray[4].ToString()),
+                                                       DateTime.Parse(data.Rows[i].ItemArray[5].ToString()),
+                                                       data.Rows[i].ItemArray[6].ToString());
+                myDataTableRowsList.Add(temp);
+            }
+
+        }
+
+        private DataTable ConvertDataClassToDataTable(List<DataTableRowClass> dtrc)
+        {
+            if (dtrc != null)
+            {
+                DataTable dt = new DataTable();
+                dt.Columns.Add("Id"); //0
+                dt.Columns[0].DataType = typeof(Int32);
+                dt.Columns.Add("Time_ms"); //1
+                dt.Columns[1].DataType = typeof(double);
+                dt.Columns.Add("StateAfter"); //2
+                dt.Columns[2].DataType = typeof(short);
+                dt.Columns.Add("MsgClass"); //3
+                dt.Columns[3].DataType = typeof(short);
+                dt.Columns.Add("MsgNumber"); //4
+                dt.Columns[4].DataType = typeof(short);
+                dt.Columns.Add("TimeString"); //5
+                dt.Columns[5].DataType = typeof(DateTime);
+                dt.Columns.Add("MsgText"); //6
+                dt.Columns[6].DataType = typeof(string);
+
+                foreach (DataTableRowClass dtr in dtrc)
+                {
+                    dt.Rows.Add(dtr.Id, dtr.Time_Ms, dtr.StateAfter, dtr.MsgClass, dtr.MsgNumber, dtr.TimeString, dtr.MsgText);
+                }
+
+                return dt;
+            }
+            return null;
         }
 
         private void ColorDGVRow(int Index, Color color, DataGridView dgv)
@@ -195,12 +267,12 @@ namespace Analyze_alarms
                                 while (stopDuration.Milliseconds == 0 && y < data.Rows.Count)
                                 {
                                     //2 = MsgClass , 3 = MsgNumber
-                                    if (Convert.ToInt16(data.Rows[y].ItemArray[2].ToString()) == ProdRunning_LB[0] && Convert.ToInt16(data.Rows[y].ItemArray[3].ToString()) == ProdRunning_LB[1])
+                                    if (Convert.ToInt16(data.Rows[y].ItemArray[3].ToString()) == ProdRunning_LB[0] && Convert.ToInt16(data.Rows[y].ItemArray[4].ToString()) == ProdRunning_LB[1])
                                     {
                                         //Started production again. 1 = "StateAfter"
-                                        if (Convert.ToBoolean(data.Rows[y].ItemArray[1]))
+                                        if (Convert.ToBoolean(data.Rows[y].ItemArray[2]))
                                         {
-                                            nextStart = DateTime.Parse(data.Rows[y].ItemArray[4].ToString());
+                                            nextStart = DateTime.Parse(data.Rows[y].ItemArray[5].ToString());
                                             stopDuration = nextStart.Subtract(stopTime);
                                             break;
                                         }
@@ -210,7 +282,7 @@ namespace Analyze_alarms
 
                                 //Check if lastStopRow is of Production running class
                                 //Then it needs to be treated as an unknown stop and but the time on "Unknown"
-                                if (Convert.ToInt16(data.Rows[lastStopRow].ItemArray[2]) == ProdRunning_LB[0])
+                                if (Convert.ToInt16(data.Rows[lastStopRow].ItemArray[3]) == ProdRunning_LB[0])
                                 {
                                     //TODO: Handle Unknown stop cause
                                     StopCauseMsgNumber = 9999;
@@ -222,13 +294,13 @@ namespace Analyze_alarms
                                     //Itirate between the potential stop rows
                                     for (int i = firstStopRow; i <= lastStopRow; i++)
                                     {
-                                        if (Convert.ToBoolean(data.Rows[i].ItemArray[1]))
+                                        if (Convert.ToBoolean(data.Rows[i].ItemArray[2]))
                                         {
                                             //Prep data
-                                            int tempStopCauseClassNr = Convert.ToInt16(data.Rows[i].ItemArray[2]);
-                                            int tempStopCauseMsgNr = Convert.ToInt16(data.Rows[i].ItemArray[3]);
-                                            DateTime tempStopTimeStamp = Convert.ToDateTime(data.Rows[i].ItemArray[4]);
-                                            string tempStopCauseMsgText = data.Rows[i].ItemArray[5].ToString();
+                                            int tempStopCauseClassNr = Convert.ToInt16(data.Rows[i].ItemArray[3]);
+                                            int tempStopCauseMsgNr = Convert.ToInt16(data.Rows[i].ItemArray[4]);
+                                            DateTime tempStopTimeStamp = Convert.ToDateTime(data.Rows[i].ItemArray[5]);
+                                            string tempStopCauseMsgText = data.Rows[i].ItemArray[6].ToString();
 
                                             //Check vs. settings
                                             foreach (LogSettings ls in MainForm.logSettings)
@@ -267,10 +339,10 @@ namespace Analyze_alarms
                                                     foreach (LogSettings ls in MainForm.logSettings)
                                                     {
                                                         //Look for a class nr that match the indirect stops subclass member
-                                                        if (ls.messageNr == StopCauseMsgNumber && ls.subClassMember == Convert.ToInt16(data.Rows[c].ItemArray[2]))
+                                                        if (ls.messageNr == StopCauseMsgNumber && ls.subClassMember == Convert.ToInt16(data.Rows[c].ItemArray[3]))
                                                         {
-                                                            StopCauseMsgNumber = Convert.ToInt16(data.Rows[c].ItemArray[3]);
-                                                            StopCauseMsgText = data.Rows[c].ItemArray[5].ToString();
+                                                            StopCauseMsgNumber = Convert.ToInt16(data.Rows[c].ItemArray[4]);
+                                                            StopCauseMsgText = data.Rows[c].ItemArray[6].ToString();
                                                             stopCauseRow = c;
                                                             found = true;
                                                             break;
@@ -314,7 +386,6 @@ namespace Analyze_alarms
                         }
                     }
                 }
-                //MessageBox.Show(mySummary.Count.ToString() + "   " + mySummary[0].stopDuration.ToString(@"HH\:mm\:ss"));
             }
         }
 
@@ -474,203 +545,39 @@ namespace Analyze_alarms
 
         private void CreateReportTab()
         {
-            Size controlSize = new Size(244, 20);
-            Font fontStyleBold = new Font(Label.DefaultFont, FontStyle.Bold);
+            myReportFormData = new Classes.ReportFormData();
+            var reportData = new Classes.ReportData(this, myReportFormData);
 
-            //Tab page
-            tp_Report = new TabPage();
-            tp_Report.Text = "Report";
+            tp_Report = reportData.CreateTabPage();
+
             tabControl1.TabPages.Add(tp_Report);
-
-            //Header label
-            var lbl_Header = new Label();
-            lbl_Header.Text = "Report header";
-            lbl_Header.Font = fontStyleBold;
-            lbl_Header.AutoSize = false;
-            lbl_Header.Size = controlSize;
-            lbl_Header.Location = new Point(10, 10);
-            tp_Report.Controls.Add(lbl_Header);
-
-            //Header textbox
-            var tb_ReportHeader = new TextBox();
-            tb_ReportHeader.Enter += new EventHandler(tb_ReportHeader_Enter);
-            tb_ReportHeader.Leave += new EventHandler(tb_ReportHeader_Leave);
-            tb_ReportHeader.Text = "Report header...";
-            tb_ReportHeader.MaxLength = 35;
-            tb_ReportHeader.Size = controlSize;
-            tb_ReportHeader.Location = new Point(lbl_Header.Location.X, lbl_Header.Location.Y + lbl_Header.Height);
-            tp_Report.Controls.Add(tb_ReportHeader);
-
-            //Date label
-            var lbl_Date = new Label();
-            lbl_Date.Text = "Report date";
-            lbl_Date.Font = fontStyleBold;
-            lbl_Date.AutoSize = false;
-            lbl_Date.Size = controlSize;
-            lbl_Date.Location = new Point(tb_ReportHeader.Location.X, tb_ReportHeader.Location.Y + tb_ReportHeader.Height + 15);
-            tp_Report.Controls.Add(lbl_Date);
-
-            //Date picker
-            var dtp_Report = new DateTimePicker();
-            dtp_Report.ValueChanged += new EventHandler(dtp_Report_ValueChanged);
-            dtp_Report.Format = DateTimePickerFormat.Short;
-            dtp_Report.Value = DateTime.Now;
-            dtp_Report.Size = controlSize;
-            dtp_Report.Location = new Point(lbl_Date.Location.X, lbl_Date.Location.Y + lbl_Date.Height);
-            tp_Report.Controls.Add(dtp_Report);
-
-            //Report from plant/line label
-            var lbl_ReportFrom = new Label();
-            lbl_ReportFrom.Text = "Report from";
-            lbl_ReportFrom.Font = fontStyleBold;
-            lbl_ReportFrom.AutoSize = false;
-            lbl_ReportFrom.Size = controlSize;
-            lbl_ReportFrom.Location = new Point(dtp_Report.Location.X, dtp_Report.Location.Y + dtp_Report.Height + 15);
-            tp_Report.Controls.Add(lbl_ReportFrom);
-
-            //Report from plant/line textbox
-            var tb_ReportFrom = new TextBox();
-            tb_ReportFrom.Enter += new EventHandler(tb_ReportFrom_Enter);
-            tb_ReportFrom.Leave += new EventHandler(tb_ReportFrom_Leave);
-            tb_ReportFrom.Text = "Report from...";
-            tb_ReportFrom.MaxLength = 35;
-            tb_ReportFrom.Size = controlSize;
-            tb_ReportFrom.Location = new Point(lbl_ReportFrom.Location.X, lbl_ReportFrom.Location.Y + lbl_ReportFrom.Height);
-            tp_Report.Controls.Add(tb_ReportFrom);
-
-            //ReportBy label
-            var lbl_ReportBy = new Label();
-            lbl_ReportBy.Text = "Report done by";
-            lbl_ReportBy.Font = fontStyleBold;
-            lbl_ReportBy.AutoSize = false;
-            lbl_ReportBy.Size = controlSize;
-            lbl_ReportBy.Location = new Point(tb_ReportFrom.Location.X, tb_ReportFrom.Location.Y + tb_ReportFrom.Height + 15);
-            tp_Report.Controls.Add(lbl_ReportBy);
-
-            //ReportBy textbox
-            var tb_ReportBy = new TextBox();
-            tb_ReportBy.Enter += new EventHandler(tb_ReportBy_Enter);
-            tb_ReportBy.Leave += new EventHandler(tb_ReportBy_Leave);
-            tb_ReportBy.Text = "Report done by...";
-            tb_ReportBy.Size = controlSize;
-            tb_ReportBy.Location = new Point(lbl_ReportBy.Location.X, lbl_ReportBy.Location.Y + lbl_ReportBy.Height);
-            tp_Report.Controls.Add(tb_ReportBy);
-
-            //Row chart label
-            var lbl_RowChart = new Label();
-            lbl_RowChart.Text = "Row chart";
-            lbl_RowChart.Font = fontStyleBold;
-            lbl_RowChart.AutoSize = true;
-            lbl_RowChart.Location = new Point(lbl_Header.Location.X + lbl_Header.Width + 30, lbl_Header.Location.Y);
-            tp_Report.Controls.Add(lbl_RowChart);
-
-            //Charts checkbox row chart
-            var chk_RowChart = new CheckBox();
-            chk_RowChart.CheckStateChanged += new EventHandler(chk_RowChart_CheckStateChanged);
-            chk_RowChart.Text = "Add Row Chart";
-            chk_RowChart.Checked = true;
-            chk_RowChart.AutoSize = true;            
-            chk_RowChart.Location = new Point(lbl_RowChart.Location.X, lbl_RowChart.Location.Y + lbl_RowChart.Height + 8);
-            tp_Report.Controls.Add(chk_RowChart);
-
-            //Pie chart label
-            var lbl_PieChart = new Label();
-            lbl_PieChart.Text = "Pie chart";
-            lbl_PieChart.Font = fontStyleBold;
-            lbl_PieChart.AutoSize = true;
-            lbl_PieChart.Location = new Point(chk_RowChart.Location.X + chk_RowChart.Width + 5, lbl_RowChart.Location.Y);
-            tp_Report.Controls.Add(lbl_PieChart);
-
-            //Charts checkbox pie chart
-            var chk_PieChart = new CheckBox();
-            chk_PieChart.CheckStateChanged += new EventHandler(chk_PieChart_CheckStateChanged);
-            chk_PieChart.Text = "Add Pie Chart";
-            chk_PieChart.Checked = true;
-            chk_PieChart.AutoSize = true;
-            chk_PieChart.Location = new Point(chk_RowChart.Location.X + chk_RowChart.Width + 5, chk_RowChart.Location.Y);
-            tp_Report.Controls.Add(chk_PieChart);
-
-            //Summary label
-            var lbl_Summary = new Label();
-            lbl_Summary.Text = "Summary";
-            lbl_Summary.Font = fontStyleBold;
-            lbl_Summary.AutoSize = true;
-            lbl_Summary.Location = new Point(chk_PieChart.Location.X + chk_PieChart.Width + 5, lbl_RowChart.Location.Y);
-            tp_Report.Controls.Add(lbl_Summary);
-
-            //Summary checkbox
-            var chk_Summary = new CheckBox();
-            chk_Summary.CheckStateChanged += new EventHandler(chk_Summary_CheckStateChanged);
-            chk_Summary.Text = "Add summary";
-            chk_Summary.Checked = true;
-            chk_Summary.AutoSize = true;
-            chk_Summary.Location = new Point(lbl_Summary.Location.X, chk_PieChart.Location.Y);
-            tp_Report.Controls.Add(chk_Summary);
-
-            //Freetext label
-            var lbl_FreeText = new Label();
-            lbl_FreeText.Text = "Comments";
-            lbl_FreeText.Font = fontStyleBold;
-            lbl_FreeText.AutoSize = true;
-            lbl_FreeText.Location = new Point(chk_RowChart.Location.X, lbl_Date.Location.Y);
-            tp_Report.Controls.Add(lbl_FreeText);
-
-            //Freetext textbox
-            var tb_Freetext = new TextBox();
-            tb_Freetext.Enter += new EventHandler(tb_Freetext_Enter);
-            tb_Freetext.Leave += new EventHandler(tb_Freetext_Leave);
-            tb_Freetext.Text = "";
-            tb_Freetext.Multiline = true;
-            tb_Freetext.Location = new Point(lbl_FreeText.Location.X, dtp_Report.Location.Y);
-            tb_Freetext.Size = new Size(chk_Summary.Location.X + chk_Summary.Width - chk_RowChart.Location.X, tb_ReportBy.Location.Y + tb_ReportBy.Height - tb_Freetext.Location.Y);
-            tp_Report.Controls.Add(tb_Freetext);
-
-            //Generate report button
-            var btn_GenerateReport = new Button();
-            btn_GenerateReport.Click += new EventHandler(btn_GenerateReport_Click);
-            btn_GenerateReport.Text = "Generate report";
-            btn_GenerateReport.Font = new Font(btn_GenerateReport.Font.FontFamily, 18.0f);
-            btn_GenerateReport.Size = new Size(chk_Summary.Location.X + chk_Summary.Width - tb_ReportBy.Location.X, 150);
-            btn_GenerateReport.Location = new Point(tb_ReportBy.Location.X, tb_ReportBy.Location.Y + tb_ReportBy.Height + 15);
-            tp_Report.Controls.Add(btn_GenerateReport);
-
-            //Generate save dialog    
-            saveDialog = new SaveFileDialog();
-            saveDialog.FileOk += new CancelEventHandler(saveDialog_FileOk);
-            saveDialog.DefaultExt = ".pdf";
-            saveDialog.Filter = "Portable Document Format (.pdf)|*.pdf";
-            saveDialog.RestoreDirectory = true;
-
         }
 
-        private void saveDialog_FileOk(object sender, CancelEventArgs e)
+        public void StartCreatePDFReport(Classes.ReportData rd)
         {
-            SaveFileDialog s = (SaveFileDialog)sender;
-            saveReportFilePath = s.FileName;
-
-            StartCreatePDFReport();
-        }
-
-        private void StartCreatePDFReport()
-        {
-            generator = new Classes.ReportGenerator(this);
+            generator = new Classes.ReportGenerator(this, rd);
 
             Cursor = Cursors.WaitCursor;
-            if (chk_PieChart_Checked || chk_RowChart_Checked)
+
+            rd.AddAttachmentsToReport(ref generator);
+
+            if (myReportFormData.customLogoPath != null) generator.NewCustomerLogo(myReportFormData.customLogoPath);
+
+            if (myReportFormData.chk_PieChart_Checked || myReportFormData.chk_RowChart_Checked)
             {
-                paintForm = new Forms.PaintCharts(this, mySummary);
-                paintForm.Show();
+                rd.paintChartsForm = new Forms.PaintCharts(this, mySummary);
+                rd.paintChartsForm.Show();
                 //After the paintForm is showned it will draw charts and then set UC_NewLog property PaintFormCompleted,
                 //this will in turn call function paintChartFormDone();
             }
             else
             {
-                GenerateReport();
-            }            
+                GenerateReport(ref rd);
+            }
         }
 
-        private void paintChartFormDone(ref Classes.ReportGenerator generator)
-        {           
+        private void paintChartFormDone(ref Classes.ReportGenerator generator, ref Classes.ReportData rd)
+        {
 
             if (rowChart != null)
                 generator.rowChart = (Image)BitmapFromChart(rowChart);
@@ -678,15 +585,15 @@ namespace Analyze_alarms
             if (pieChart != null)
                 generator.pieChart = (Image)BitmapFromChart(pieChart);
 
-            paintForm.Close();
-            paintForm.Dispose();
+            rd.paintChartsForm.Close();
+            rd.paintChartsForm.Dispose();
 
-            GenerateReport();
+            GenerateReport(ref rd);
         }
 
-        private void GenerateReport()
+        private void GenerateReport(ref Classes.ReportData rd)
         {
-            var filepath = generator.Generate(saveReportFilePath, false);
+            var filepath = generator.Generate(rd.saveReportFilePath);
 
             Process.Start(filepath);
             Cursor = Cursors.Default;
@@ -695,101 +602,7 @@ namespace Analyze_alarms
         #endregion
 
         #region EVENTS
-
-        private void tb_ReportFrom_Enter(object sender, EventArgs e)
-        {
-            TextBox thisTB = (TextBox)sender;
-            if (!tb_ReportFrom_Edited)
-                thisTB.Text = "";
-        }
-
-        private void tb_ReportFrom_Leave(object sender, EventArgs e)
-        {
-            TextBox thisTB = (TextBox)sender;
-            tb_ReportFrom_Text = thisTB.Text;
-            tb_ReportFrom_Edited = true;
-        }
-
-        private void tb_ReportHeader_Enter(object sender, EventArgs e)
-        {
-            TextBox thisTB = (TextBox)sender;
-            if (!tb_Header_Edited)
-                thisTB.Text = "";
-        }
-
-        private void tb_ReportHeader_Leave(object sender, EventArgs e)
-        {
-            TextBox thisTB = (TextBox)sender;
-            tb_Header_Text = thisTB.Text;
-            tb_Header_Edited = true;
-        }
-
-        private void dtp_Report_ValueChanged(object sender, EventArgs e)
-        {
-            DateTimePicker dtp = (DateTimePicker)sender;
-            dtp_ReportDate = dtp.Value;
-        }
-
-        private void tb_ReportBy_Enter(object sender, EventArgs e)
-        {
-            TextBox thisTB = (TextBox)sender;
-            if (!tb_ReportBy_Edited)
-                thisTB.Text = "";            
-        }
-
-        private void tb_ReportBy_Leave(object sender, EventArgs e)
-        {
-            TextBox thisTB = (TextBox)sender;
-            tb_ReportBy_Text = thisTB.Text;
-            tb_ReportBy_Edited = true;
-        }
-
-        private void chk_PieChart_CheckStateChanged(object sender, EventArgs e)
-        {
-            CheckBox thisChk = (CheckBox)sender;
-            if (thisChk.Checked)
-                chk_PieChart_Checked = true;
-            else
-                chk_PieChart_Checked = false;
-        }
-
-        private void chk_RowChart_CheckStateChanged(object sender, EventArgs e)
-        {
-            CheckBox thisChk = (CheckBox)sender;
-            if (thisChk.Checked)
-                chk_RowChart_Checked = true;
-            else
-                chk_RowChart_Checked = false;
-        }
-
-        private void chk_Summary_CheckStateChanged(object sender, EventArgs e)
-        {
-            CheckBox thisChk = (CheckBox)sender;
-            if (thisChk.Checked)
-                chk_Summary_Checked = true;
-            else
-                chk_Summary_Checked = false;
-        }
-
-        private void tb_Freetext_Enter(object sender, EventArgs e)
-        {
-            TextBox thisTB = (TextBox)sender;
-            if (!tb_FreeText_Edited)
-                thisTB.Text = "";
-        }
-
-        private void tb_Freetext_Leave(object sender, EventArgs e)
-        {
-            TextBox thisTB = (TextBox)sender;
-            tb_FreeText_Text = thisTB.Text;
-            tb_FreeText_Edited = true;
-        }
-
-        private void btn_GenerateReport_Click(object sender, EventArgs e)
-        {
-            saveDialog.ShowDialog();
-        }        
-
+      
         private void OnBarBtnClick(object sender, EventArgs e)
         {
             if (tp_Diagram.Controls.ContainsKey("rowControl") && tp_Diagram.Controls.ContainsKey("pieControl"))
@@ -800,7 +613,6 @@ namespace Analyze_alarms
                 tp_Diagram.Controls[tp_Diagram.Controls.IndexOfKey("btn_Pie")].BringToFront();
             }
         }
-    
 
         //TODO: DEGUG ONLY
         private void dataGridView1_RowPostPaint(object sender, DataGridViewRowPostPaintEventArgs e)
@@ -838,7 +650,7 @@ namespace Analyze_alarms
 
             for (int i = data.Rows.Count - 1; i >= 0; i--)
             {
-                row = Convert.ToDateTime(data.Rows[i].ItemArray[4]);
+                row = Convert.ToDateTime(data.Rows[i].ItemArray[5]);
                 if (row != null)
                 {
                     if (row < from || row > to)
@@ -865,14 +677,8 @@ namespace Analyze_alarms
             }
         }
 
-        public event EventHandler AnalyzeButtonClick;
         private void btn_Analyze_Click(object sender, EventArgs e)
         {
-            //bubble the event up to the parent
-            if (this.AnalyzeButtonClick != null)
-                this.AnalyzeButtonClick(this, e);
-
-            //Local handler code
             Cursor = Cursors.WaitCursor;
 
             mySummary.Clear();
@@ -880,13 +686,11 @@ namespace Analyze_alarms
             AnalyzeLogFile();
             CreateSummaryTab();
             CreateDiagramTab();
-            
+            Analyzed = true;
             Cursor = Cursors.Default;
 
             tabControl1.SelectedIndex = 2;
         }
-
-
 
         private void UC_NewLog_Load(object sender, EventArgs e)
         {
@@ -898,14 +702,25 @@ namespace Analyze_alarms
         {
             if (e.RowIndex % 2 == 1)
             {
-                dataGridView2.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.LightGray;
+                dataGridView2.Rows[e.RowIndex].DefaultCellStyle.BackColor = Color.AntiqueWhite;
             }
         }
 
         private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (tabControl1.SelectedIndex == 2 && tabControl1.TabPages.Count < 4)
+            if (tabControl1.SelectedIndex == 2 && tabControl1.TabPages.Count < 4 && Analyzed)
                 CreateReportTab();
+
+            if (tabControl1.SelectedIndex == 3)
+            {
+                if (parent.WindowState == FormWindowState.Maximized) parent.WindowState = FormWindowState.Normal;
+                parent.Size = new Size(641, 531);
+                parent.MaximumSize = parent.Size;
+            }
+            else
+            {
+                parent.MaximumSize = new Size(9999, 9999);
+            }
         }
         #endregion
 

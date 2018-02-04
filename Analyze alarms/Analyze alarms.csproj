@@ -68,6 +68,10 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="LiteDB, Version=4.1.1.0, Culture=neutral, PublicKeyToken=4ee40123013c9f27, processorArchitecture=MSIL">
+      <HintPath>..\packages\LiteDB.4.1.1\lib\net40\LiteDB.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="LiveCharts, Version=0.9.7.0, Culture=neutral, PublicKeyToken=0bc1f845d1ebb8df, processorArchitecture=MSIL">
       <HintPath>..\packages\LiveCharts.0.9.7\lib\net40\LiveCharts.dll</HintPath>
       <Private>True</Private>
@@ -82,10 +86,6 @@
     </Reference>
     <Reference Include="PdfSharp, Version=1.32.3057.0, Culture=neutral, PublicKeyToken=f94615aa0424f9eb, processorArchitecture=MSIL">
       <HintPath>..\packages\PDFsharp.1.32.3057.0\lib\net20\PdfSharp.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="PdfSharp.Charting, Version=1.32.3057.0, Culture=neutral, PublicKeyToken=f94615aa0424f9eb, processorArchitecture=MSIL">
-      <HintPath>..\packages\PDFsharp.1.32.3057.0\lib\net20\PdfSharp.Charting.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="PresentationCore" />
@@ -108,14 +108,17 @@
     <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\AttachmentImages.cs" />
+    <Compile Include="Classes\DataBase.cs" />
+    <Compile Include="Classes\DataTableRowClass.cs" />
+    <Compile Include="Classes\ImageHandling.cs" />
+    <Compile Include="Classes\ImageOrientation.cs" />
+    <Compile Include="Classes\Project.cs" />
+    <Compile Include="Classes\ReportData.cs" />
+    <Compile Include="Classes\ReportFormData.cs" />
     <Compile Include="Classes\ReportGenerator.cs" />
     <Compile Include="Classes\Charts.cs" />
     <Compile Include="Classes\Summary.cs" />
-    <Compile Include="Data\LocalDatabaseDataSet.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>LocalDatabaseDataSet.xsd</DependentUpon>
-    </Compile>
     <Compile Include="Forms\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -184,17 +187,6 @@
     <EmbeddedResource Include="UserControls\UC_NewLog.resx">
       <DependentUpon>UC_NewLog.cs</DependentUpon>
     </EmbeddedResource>
-    <None Include="Data\LocalDatabaseDataSet.xsc">
-      <DependentUpon>LocalDatabaseDataSet.xsd</DependentUpon>
-    </None>
-    <None Include="Data\LocalDatabaseDataSet.xsd">
-      <Generator>MSDataSetGenerator</Generator>
-      <LastGenOutput>LocalDatabaseDataSet.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="Data\LocalDatabaseDataSet.xss">
-      <DependentUpon>LocalDatabaseDataSet.xsd</DependentUpon>
-    </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -212,13 +204,6 @@
   <ItemGroup>
     <Content Include="ChartBackground2.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Data\LocalDatabase.mdf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Data\LocalDatabase_log.ldf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      <DependentUpon>LocalDatabase.mdf</DependentUpon>
     </Content>
     <Content Include="Data\RecentLogs.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

@@ -7,6 +7,7 @@ namespace Analyze_alarms.Classes
 {
     public class Summary
     {
+        public Int32 Id { get; set; }
         public int MsgNumber { get; set; }
         public string MsgText { get; set; }
         public int Amount { get; set; }

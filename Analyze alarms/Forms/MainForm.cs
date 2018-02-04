@@ -12,12 +12,17 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using System.Xml.Linq;
 using System.Configuration;
+using Analyze_alarms.Classes;
 
 namespace Analyze_alarms
 {
     public partial class MainForm : Form
     {
+        string openedProjectName = "";
+
+        Project openedProjectData = new Project();
         static List<DataTable> myDataTables = new List<DataTable>();
+        private List<UC_NewLog> myUCs = new List<UC_NewLog>();
         List<string> openedFiles = new List<string>();
         const int MRUnumber = 6;
         System.Collections.Generic.Queue<string> MRUlist = new Queue<string>();
@@ -28,6 +33,9 @@ namespace Analyze_alarms
         public MainForm()
         {
             InitializeComponent();
+            this.MinimumSize = new Size(640, 530);
+            this.Size = this.MinimumSize;
+            toolStripStatusLabel1.Text = "";
         }
 
 
@@ -35,12 +43,7 @@ namespace Analyze_alarms
         /// All generic functions here
         /// 
         #region Functions
-        
-        public void ResizeForm()
-        {
-
-        }
-
+       
         private void AddNewLogControl(string filePath)
         {
             SaveRecentLogFile(filePath);
@@ -56,7 +59,8 @@ namespace Analyze_alarms
             ConvertCSVtoDataTable(filePath);
 
             ////Clear columns that have no valuable information
-            myDataTables[myDataTables.Count - 1].Columns.RemoveAt(15);
+            myDataTables[myDataTables.Count - 1].Columns.RemoveAt(16);
+            myDataTables[myDataTables.Count - 1].Columns.RemoveAt(13);
             myDataTables[myDataTables.Count - 1].Columns.RemoveAt(12);
             myDataTables[myDataTables.Count - 1].Columns.RemoveAt(11);
             myDataTables[myDataTables.Count - 1].Columns.RemoveAt(10);
@@ -64,19 +68,16 @@ namespace Analyze_alarms
             myDataTables[myDataTables.Count - 1].Columns.RemoveAt(8);
             myDataTables[myDataTables.Count - 1].Columns.RemoveAt(7);
             myDataTables[myDataTables.Count - 1].Columns.RemoveAt(6);
-            myDataTables[myDataTables.Count - 1].Columns.RemoveAt(5);
-            myDataTables[myDataTables.Count - 1].Columns.RemoveAt(1);
+            myDataTables[myDataTables.Count - 1].Columns.RemoveAt(2);
 
             //Remove last row which just have a count
             myDataTables[myDataTables.Count - 1].Rows.RemoveAt(myDataTables[myDataTables.Count - 1].Rows.Count - 1);
 
-            //TODO: Only save an analyzed log to database
-            //Store this data in DB
-            //DatabaseUtilitys dbutil = new DatabaseUtilitys();
-            //dbutil.StoreLogFileInDB(myDataTables[myDataTables.Count - 1]);
-
             //Create new user control for this file
-            fileTabControl.TabPages[fileTabControl.TabCount - 1].Controls.Add(CreateNewLog(myDataTables[myDataTables.Count - 1]));          
+            var uc = CreateNewLogFromCSV(myDataTables[myDataTables.Count - 1]);
+            uc.Name = fileTabText;
+            myUCs.Add(uc);
+            fileTabControl.TabPages[fileTabControl.TabCount - 1].Controls.Add(uc);          
         }
 
         private void PrepareWindowForNewFiles(string[] filePaths = null, string filePath = "")
@@ -126,6 +127,7 @@ namespace Analyze_alarms
                     string[] headers = sr.ReadLine().Split(';');
                     string oneHeader;
                     int x = 0;
+                    dt.Columns.Add("Id");
                     foreach (string header in headers)
                     {
                         oneHeader = header.Trim('"');
@@ -133,12 +135,8 @@ namespace Analyze_alarms
 
                         switch (x)
                         {
-                            case 0:
+                            case 1:
                                 dt.Columns[x].DataType = typeof(double);
-                                break;
-
-                            case 2:
-                                dt.Columns[x].DataType = typeof(short);
                                 break;
 
                             case 3:
@@ -149,7 +147,11 @@ namespace Analyze_alarms
                                 dt.Columns[x].DataType = typeof(short);
                                 break;
 
-                            case 13:
+                            case 5:
+                                dt.Columns[x].DataType = typeof(short);
+                                break;
+
+                            case 14:
                                 dt.Columns[x].DataType = typeof(DateTime);
                                 break;
                         }
@@ -157,54 +159,56 @@ namespace Analyze_alarms
                         x++;
                     }
 
-                    dt.Columns.Add("fileName");
-                    //dt.Columns["fileName"].DataType = typeof(String);
+                    //dt.Columns.Add("fileName");
 
+                    int y = 0;
                     while (!sr.EndOfStream)
                     {
                         string[] rows = sr.ReadLine().Split(';');
                         DataRow dr = dt.NewRow();
+                        
                         for (int i = 0; i < headers.Length; i++)
                         {
                             rows[i] = rows[i].Trim('"');
                             if (rows[i] != "")
                             {
+                                dr[0] = y;
                                 switch (i)
                                 {
                                     case 0:
                                         double templong;
                                         if (double.TryParse(rows[i], out templong))
                                         {
-                                            dr[i] = templong;
+                                            dr[i+1] = templong;
                                         }
                                         break;
 
                                     case 2:
-                                        dr[i] = short.Parse(rows[i]);
+                                        dr[i+1] = short.Parse(rows[i]);
                                         break;
 
                                     case 3:
-                                        dr[i] = short.Parse(rows[i]);
+                                        dr[i+1] = short.Parse(rows[i]);
                                         break;
 
                                     case 4:
-                                        dr[i] = short.Parse(rows[i]);
+                                        dr[i+1] = short.Parse(rows[i]);
                                         break;
 
                                     case 13:
                                         string temp = rows[i].Replace('.', '-');
-                                        dr[i] = DateTime.ParseExact(temp, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                                        dr[i+1] = DateTime.ParseExact(temp, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
                                         break;
 
                                     default:
-                                        dr[i] = rows[i];
+                                        dr[i+1] = rows[i];
                                         break;
                                 }
                             }
                         }
-                        dr[16] = strFilePath;
+                        //dr[17] = strFilePath;
                         dt.Rows.Add(dr);
-
+                        y++;
                     }
 
                 }
@@ -358,16 +362,18 @@ namespace Analyze_alarms
             }
         }
 
-        private UC_NewLog CreateNewLog(DataTable data)
+        private UC_NewLog CreateNewLogFromCSV(DataTable data)
         {
-            var uc = new UC_NewLog(this, data);
-            uc.AnalyzeButtonClick += new EventHandler(UC_NewLog_Analyze_Button_Click);
-            uc.Dock = DockStyle.Fill;
-            //uc.data = data;
-
+            var uc = new UC_NewLog(data, this);   
             return uc;
         }
 
+        private UC_NewLog CreateNewLogFromOpenedProject(string controlName)
+        {
+            var uc = new UC_NewLog(controlName, this);
+            return uc;
+        }
+        
         private void OpenLogFile(string filePath = "")
         {
             if (filePath == "")
@@ -427,7 +433,7 @@ namespace Analyze_alarms
                             duplicates = true;
                         }
                     }
-                }
+                }   
             }
 
             if (duplicates) MessageBox.Show("You can't add files with the same filename as any existing files!");
@@ -445,7 +451,6 @@ namespace Analyze_alarms
             this.Icon = new Icon(System.Environment.CurrentDirectory + "\\logo.ico");
             LoadRecentList("\\Data\\RecentLogs.txt");
             LoadLogSettingsFromFile();
-
         }
 
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
@@ -493,8 +498,181 @@ namespace Analyze_alarms
         {
 
         }
+
         #endregion
 
+        private void CreateProjectFile(string filePath, int ucCount, List<string> ucNames)
+        {
+            string path = filePath;
+            string name = Path.GetFileName(path);
+            if (path != "")
+            {
+                // Create a file to write to.
+                using (StreamWriter sw = File.CreateText(path))
+                {
+                    sw.WriteLine(name);
+                    sw.WriteLine(ucCount.ToString());
+                    foreach(string s in ucNames)
+                    {
+                        sw.WriteLine(s);
+                    }
+                }
+                openedProjectData = new Project(name.Replace('.', '_'), ucCount, ucNames);
+            }
+        }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <returns>Returns: Projectname [0] , Usercontrol count [0] , Usercontrol names [1->Count-1]</returns>
+        private List<string> ReadProjectFile(string filePath)
+        {
+            using (StreamReader sr = File.OpenText(filePath))
+            {
+                string s = "";
+                List<string> ls = new List<string>();
+                while ((s = sr.ReadLine()) != null)
+                {
+                    ls.Add(s);
+                }                
+                return ls;
+            }
+        }
+
+        private void SaveToDB(string projectName)
+        {
+            Classes.DataBase db = new Classes.DataBase();
+            foreach (UC_NewLog uc in myUCs)
+            {
+                db.SaveSummaryData(uc.mySummary, projectName + "_summaryData_" + uc.Name);
+                db.SaveReportData(uc.myReportFormData, projectName + "_reportData_" + uc.Name);
+                db.SaveDataTable(uc.myDataTableRowsList, projectName + "_dataTable_" + uc.Name);
+            }
+        }
+
+        private void PopulateDataTablesFromDB()
+        {
+
+        }
+
+        private void ReadFromDB(string projectName)
+        {
+            Classes.DataBase db = new Classes.DataBase();
+            if (myUCs != null && myUCs.Count > 0)
+            {
+                List<Summary> summary = new List<Summary>();
+                ReportFormData reportFormData = new ReportFormData();
+                List<DataTableRowClass> dataTableRowsList = new List<DataTableRowClass>();
+
+                foreach (UC_NewLog uc in myUCs)
+                {
+                    summary= db.LoadSummaryData(projectName + "_summaryData_" + uc.Name);
+                    reportFormData = db.LoadReportData(projectName + "_reportData_" + uc.Name);
+                    dataTableRowsList = db.LoadDataTablesData(projectName + "_dataTable_" + uc.Name);
+
+                    //Populate Usercontrols data
+                    PopulateUCData(uc, summary, reportFormData, dataTableRowsList);
+                }
+            }
+        }
+
+        private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            saveFileDialog1.Filter = "ABECE Project | *.abc;";
+            saveFileDialog1.RestoreDirectory = true;
+
+            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                List<string> slist = new List<string>();
+                foreach (UC_NewLog uc in myUCs)
+                {
+                    slist.Add(uc.Name);
+                }
+
+                CreateProjectFile(Path.GetFileName(saveFileDialog1.FileName), myUCs.Count, slist);
+                
+                SaveToDB(openedProjectData.ProjectName);
+                toolStripStatusLabel1.Text = "Project saved.";
+            }
+        }
+
+        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (openedProjectName != "")
+            {
+                SaveToDB(openedProjectName);
+                toolStripStatusLabel1.Text = "Project saved.";
+            }
+        }
+
+        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            openFileDialog1.Filter = "ABECE Project | *.abc;";
+            openFileDialog1.Multiselect = false;
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                string pName = "";
+                int ucCount = 0;
+                List<string> ucNames = new List<string>();
+
+                List<string> s = ReadProjectFile(openFileDialog1.FileName);
+
+                pName = s[0].ToString();
+                ucCount = int.Parse(s[1].ToString());
+                for (int i = 2; i < 2 + ucCount; i++)
+                {
+                    ucNames.Add(s[i].ToString());
+                }
+            
+
+                if (pName != "")
+                {
+                    //Fill the project data file
+                    openedProjectData = new Project(pName, ucCount, ucNames);
+                    //Create new Usercontrols for each name specified in project file
+                    InserNewUCFromSave(openedProjectData);
+                    //Get the data from the DB and ReadFromDB will populate the usercontrols
+                    ReadFromDB(openedProjectData.ProjectName.Replace('.', '_'));
+                    
+                }
+                toolStripStatusLabel1.Text = "Project loaded.";
+            }            
+        }
+
+        private void PopulateUCData(UC_NewLog uc, List<Summary> summary, ReportFormData reportFormData, List<DataTableRowClass> dataRowsList)
+        {
+            //Will populate controls and init data.
+            uc.PopulateData(summary, reportFormData, dataRowsList);
+        }
+        private void InserNewUCFromSave(Project project)
+        {
+            myUCs.Clear();
+            foreach(string name in project.UserControlNames)
+            {                
+                myUCs.Add(CreateNewLogFromOpenedProject(name));
+
+                TabPage tab = new TabPage();
+                tab.Text = myUCs[myUCs.Count - 1].Name;
+                tab.Controls.Add(myUCs[myUCs.Count - 1]);
+                fileTabControl.TabPages.Add(tab);                
+            }                        
+        }
+
+        private void toolStripStatusLabel1_TextChanged(object sender, EventArgs e)
+        {
+            Timer t = new Timer();
+            t.Tick += new EventHandler(toolStripStatusTimer_Tick);
+            t.Interval = 1500;
+            t.Start();
+        }
+
+        private void toolStripStatusTimer_Tick(object sender, EventArgs e)
+        {
+            toolStripStatusLabel1.Text = "";
+            Timer t = (Timer)sender;
+            t.Stop();
+            t.Dispose();
+        }
     }
 }

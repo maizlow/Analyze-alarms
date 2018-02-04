@@ -13,7 +13,6 @@ namespace Analyze_alarms.Classes
 {
     public class ReportGenerator
     {
-
         private const int Margin = 30;
         private const int SectionPadding = 30;
         private const string DateFormat = "yyyy-MM-dd";
@@ -24,25 +23,28 @@ namespace Analyze_alarms.Classes
         private static readonly double PageHeight = PageSizeConverter.ToSize(PageSize).Height;
         private static readonly double PageWidthLandscape = PageSizeConverter.ToSize(PageSize).Height;
         private static readonly double PageHeightLandscape = PageSizeConverter.ToSize(PageSize).Width;
-        private static readonly double UsableWidth = PageWidth - Margin * 2;
+        public double UsableWidth = PageWidth - Margin * 2;
         private static readonly XImage ABECELogo = XImage.FromFile(System.Environment.CurrentDirectory + "\\logo.png");
         private static XRect LogoRect = new XRect(PageWidth / 2 - ABECELogo.PointWidth / 2, Margin, ABECELogo.PointWidth, ABECELogo.PointHeight);
         private static readonly XFont Font = new XFont(FontFamily, 11, XFontStyle.Regular);
-        private static XImage customerLogoImage;
+        private static XImage customerLogoImage = null;
         public Image rowChart, pieChart;
+        public List<AttachmentImages> attachments;
         private UC_NewLog parent;
         private int maxSummaryEntrysPerPage = 25;
+        public ReportData reportData;
 
-        public ReportGenerator(UC_NewLog parent)
+        public ReportGenerator(UC_NewLog parent, ReportData reportData)
         {
             this.parent = parent;
+            this.reportData = reportData;
         }
 
         /// <summary>
         /// Generate a new PDF report
         /// </summary>
         /// <returns>Filepath to new PDF</returns>
-        public string Generate(string savePath, bool useCustomerLogo)
+        public string Generate(string savePath)
         {
             var document = new PdfDocument();
 
@@ -51,12 +53,12 @@ namespace Analyze_alarms.Classes
             var firstPage = document.AddPage();
             firstPage.Size = PageSize;
             var firstPage_gfx = XGraphics.FromPdfPage(firstPage);
-            GenerateFirstPage(firstPage_gfx, useCustomerLogo);
+            GenerateFirstPage(firstPage_gfx);
             GenerateFooter(firstPage_gfx, PageOrientation.Portrait);
 
             //======================================================================================================================================//
             //Add page: Freetext
-            if (parent.tb_FreeText_Text != "")
+            if (parent.myReportFormData.tb_FreeText_Text != "")
             {
                 var freeTextPage = document.AddPage();
                 freeTextPage.Size = PageSize;
@@ -67,7 +69,7 @@ namespace Analyze_alarms.Classes
 
             //======================================================================================================================================//
             //Add page: Summary
-            if (parent.chk_Summary_Checked)
+            if (parent.myReportFormData.chk_Summary_Checked)
             {
                 var summaryPage = document.AddPage();
                 summaryPage.Size = PageSize;
@@ -101,7 +103,7 @@ namespace Analyze_alarms.Classes
 
             //======================================================================================================================================//
             //Add page: Row chart
-            if (rowChart != null && parent.chk_RowChart_Checked)
+            if (rowChart != null && parent.myReportFormData.chk_RowChart_Checked)
             {
                 var rowChartPage = document.AddPage();
                 rowChartPage.Size = PageSize;
@@ -113,7 +115,7 @@ namespace Analyze_alarms.Classes
 
             //======================================================================================================================================//
             //Add page: Pie chart
-            if (pieChart != null && parent.chk_PieChart_Checked)
+            if (pieChart != null && parent.myReportFormData.chk_PieChart_Checked)
             {
                 var pieChartPage = document.AddPage();
                 pieChartPage.Size = PageSize;
@@ -123,10 +125,32 @@ namespace Analyze_alarms.Classes
                 GenerateFooter(pieChartPage_gfx, PageOrientation.Landscape);
             }
 
-            
+            //======================================================================================================================================//
+            //Add page: Attachments
+            if (attachments != null)
+            {
+                foreach (AttachmentImages i in attachments)
+                {
+                    var attachtmentPage = document.AddPage();
+                    attachtmentPage.Size = PageSize;
+
+                    if (i.orientation) attachtmentPage.Orientation = PageOrientation.Portrait;
+                    else attachtmentPage.Orientation = PageOrientation.Landscape;
+                    
+                    var attachtmentPage_gfx = XGraphics.FromPdfPage(attachtmentPage);
+                    GenerateAttachmentPage(attachtmentPage_gfx, i.img, attachments.IndexOf(i));
+
+                    if (i.orientation) GenerateFooter(attachtmentPage_gfx, PageOrientation.Portrait);
+                    else GenerateFooter(attachtmentPage_gfx, PageOrientation.Landscape);
+
+                }                
+            }
+
             document.Save(savePath);
             return savePath;
         }
+
+
 
         /// <summary>
         /// Creates a new logo image from the filePath. If not created the default ABECE logo will show.
@@ -134,8 +158,17 @@ namespace Analyze_alarms.Classes
         /// <param name="filePath">File path to customer logo.</param>
         public void NewCustomerLogo(string filePath)
         {
-            customerLogoImage = XImage.FromFile(filePath);            
-            LogoRect = new XRect(PageWidth / 2 - customerLogoImage.PointWidth / 2, Margin, customerLogoImage.PointWidth, customerLogoImage.PointHeight);
+            if (filePath != "")
+            {
+                customerLogoImage = XImage.FromFile(filePath);
+                LogoRect = new XRect(PageWidth / 2 - customerLogoImage.PointWidth / 2, Margin, customerLogoImage.PointWidth, customerLogoImage.PointHeight);
+            }
+            else
+            {
+                customerLogoImage = null;
+                LogoRect = new XRect(PageWidth / 2 - ABECELogo.PointWidth / 2, Margin, ABECELogo.PointWidth, ABECELogo.PointHeight);
+            }
+
         }
         
         /// <summary>
@@ -143,9 +176,9 @@ namespace Analyze_alarms.Classes
         /// </summary>
         /// <param name="gfx">First page graphics component</param>
         /// <param name="useCustomerLogo">If using a customerlogo. Needs to be created first!</param>
-        private void GenerateFirstPage(XGraphics gfx, bool useCustomerLogo)
+        private void GenerateFirstPage(XGraphics gfx)
         {
-            if (useCustomerLogo)
+            if (customerLogoImage != null)
             {
                 gfx.DrawImage(customerLogoImage, LogoRect.Left, LogoRect.Top);
             }
@@ -157,7 +190,7 @@ namespace Analyze_alarms.Classes
             //======================================================================================================================================//
             var font = new XFont("Calibri", 42.0, XFontStyle.Bold);
             //Get stringsize width
-            XSize stringSize = gfx.MeasureString(parent.tb_Header_Text, font);
+            XSize stringSize = gfx.MeasureString(parent.myReportFormData.tb_Header_Text, font);
 
             //Get rectangle height dependning on how long the string is. Otherwise the text wont wrap.
             double rectHeight;
@@ -167,7 +200,7 @@ namespace Analyze_alarms.Classes
 
             var rect = new XRect(Margin, LogoRect.Bottom + 150, UsableWidth, rectHeight);
             
-            CreateTextFormatter(gfx, XParagraphAlignment.Center).DrawString(parent.tb_Header_Text, font, TextBrush, rect, XStringFormats.TopLeft);
+            CreateTextFormatter(gfx, XParagraphAlignment.Center).DrawString(parent.myReportFormData.tb_Header_Text, font, TextBrush, rect, XStringFormats.TopLeft);
             
             //======================================================================================================================================//
             //Add Plant: label
@@ -179,9 +212,9 @@ namespace Analyze_alarms.Classes
             //======================================================================================================================================//
             //Add where text
             font = new XFont("Calibri", 22.0, XFontStyle.Bold);
-            stringSize = gfx.MeasureString(parent.tb_ReportFrom_Text, font);
+            stringSize = gfx.MeasureString(parent.myReportFormData.tb_ReportFrom_Text, font);
             rect = new XRect(Margin + rect.Width + 8, rect.Location.Y + 2, stringSize.Width, rectHeight);
-            CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString(parent.tb_ReportFrom_Text, font, TextBrush, rect, XStringFormats.TopLeft);
+            CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString(parent.myReportFormData.tb_ReportFrom_Text, font, TextBrush, rect, XStringFormats.TopLeft);
 
             //======================================================================================================================================//
             //Add By: label
@@ -193,9 +226,9 @@ namespace Analyze_alarms.Classes
             //======================================================================================================================================//
             //Add By: text
             font = new XFont("Calibri", 22.0, XFontStyle.Bold);
-            stringSize = gfx.MeasureString(parent.tb_ReportBy_Text, font);
+            stringSize = gfx.MeasureString(parent.myReportFormData.tb_ReportBy_Text, font);
             rect = new XRect(Margin + rect.Width + 8, rect.Location.Y + 2, stringSize.Width, font.GetHeight());
-            CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString(parent.tb_ReportBy_Text, font, TextBrush, rect, XStringFormats.TopLeft);
+            CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString(parent.myReportFormData.tb_ReportBy_Text, font, TextBrush, rect, XStringFormats.TopLeft);
 
             //Add Date: label
             font = new XFont("Calibri", 24.0, XFontStyle.Bold | XFontStyle.Underline);
@@ -206,9 +239,9 @@ namespace Analyze_alarms.Classes
             //======================================================================================================================================//
             //Add date
             font = new XFont("Calibri", 22.0, XFontStyle.Bold);
-            stringSize = gfx.MeasureString(parent.tb_ReportBy_Text, font);
+            stringSize = gfx.MeasureString(parent.myReportFormData.tb_ReportBy_Text, font);
             rect = new XRect(Margin + rect.Width + 8, rect.Location.Y + 2, stringSize.Width, font.GetHeight());
-            CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString(parent.dtp_ReportDate.Date.ToShortDateString(), font, TextBrush, rect, XStringFormats.TopLeft);
+            CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString(parent.myReportFormData.dtp_ReportDate.Date.ToShortDateString(), font, TextBrush, rect, XStringFormats.TopLeft);
         }
 
         private void GenerateFreeTextPage(XGraphics gfx)
@@ -224,7 +257,7 @@ namespace Analyze_alarms.Classes
             //======================================================================================================================================//
             font = new XFont("Calibri", 11.0, XFontStyle.Bold);
             rect = new XRect(Margin, rect.Location.Y + rect.Height + 5, UsableWidth, PageHeight - rect.Location.Y + rect.Height + 5);
-            CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString(parent.tb_FreeText_Text, font, TextBrush, rect, XStringFormats.TopLeft);
+            CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString(parent.myReportFormData.tb_FreeText_Text, font, TextBrush, rect, XStringFormats.TopLeft);
         }
 
         private void GenerateSummaryPage(XGraphics gfx, int firstIndex)
@@ -295,16 +328,6 @@ namespace Analyze_alarms.Classes
             }
         }
 
-        private void GenerateContinuesLabel(XGraphics gfx)
-        {
-            //======================================================================================================================================//
-            //Add "Continues..."
-            var font = new XFont("Calibri", 9.0, XFontStyle.Bold);
-            var stringSize = gfx.MeasureString("Continues >", font);
-            var rect = new XRect(PageWidth - Margin - stringSize.Width, PageHeight - stringSize.Height - 60, stringSize.Width, font.GetHeight());
-            CreateTextFormatter(gfx, XParagraphAlignment.Right).DrawString("Continues >", font, TextBrush, rect, XStringFormats.TopLeft);            
-        }
-
         /// <summary>
         /// Generates a page for a chart containing a picture and a header
         /// </summary>
@@ -316,6 +339,46 @@ namespace Analyze_alarms.Classes
             //Add chart image
             XImage ximg = XImage.FromGdiPlusImage(chart);
             gfx.DrawImage(ximg, PageWidthLandscape / 2 - ximg.PointWidth / 2, PageWidth / 2 - ximg.PointHeight / 2);
+        }
+
+        private void GenerateAttachmentPage(XGraphics gfx, Image image, int index)
+        {
+            index = index + 1;
+            //======================================================================================================================================//
+            //Add attachment header
+            var font = new XFont("Calibri", 15.0, XFontStyle.Bold);
+            var stringSize = gfx.MeasureString("Attachment " + index.ToString(), font);
+            var rect = new XRect(Margin, Margin, PageWidthLandscape - Margin * 2, font.GetHeight());
+            CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString("Attachment " + index.ToString(), font, TextBrush, rect, XStringFormats.TopLeft);
+
+            //======================================================================================================================================//
+            //Add attachment image
+            XImage ximg = XImage.FromGdiPlusImage(image);
+
+            //double width, height;
+            if (gfx.PageSize.Width > gfx.PageSize.Height)
+            {
+                //Landscape
+                gfx.DrawImage(ximg, PageWidthLandscape / 2 - ximg.PointWidth / 2, PageWidth / 2 - ximg.PointHeight / 2);
+            }
+            else
+            {
+                //Portrait
+                gfx.DrawImage(ximg, PageWidth / 2 - ximg.PointWidth / 2, PageWidthLandscape / 2 - ximg.PointHeight / 2);
+            }
+            
+                        
+            
+        }
+
+        private void GenerateContinuesLabel(XGraphics gfx)
+        {
+            //======================================================================================================================================//
+            //Add "Continues..."
+            var font = new XFont("Calibri", 9.0, XFontStyle.Bold);
+            var stringSize = gfx.MeasureString("Continues >", font);
+            var rect = new XRect(PageWidth - Margin - stringSize.Width, PageHeight - stringSize.Height - 60, stringSize.Width, font.GetHeight());
+            CreateTextFormatter(gfx, XParagraphAlignment.Right).DrawString("Continues >", font, TextBrush, rect, XStringFormats.TopLeft);
         }
 
         private void GenerateFooter(XGraphics gfx, PageOrientation orientation)
