@@ -102,9 +102,9 @@ namespace Analyze_alarms.Classes
         private bool CheckIfCollectionExists(string colName)
         {
             using (var db = new LiteDatabase(dbPath))
-            {
+            {                
                 return db.CollectionExists(colName);
-            }
+            }            
         }
 
 

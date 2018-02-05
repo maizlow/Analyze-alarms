@@ -28,7 +28,7 @@ namespace Analyze_alarms
         const string logSettingsFileName = "\\logsettings.xml";
 
         public static List<LogSettings> logSettings;
-        
+
         public MainForm()
         {
             InitializeComponent();
@@ -36,17 +36,17 @@ namespace Analyze_alarms
             this.Size = this.MinimumSize;
             toolStripStatusLabel1.Text = "";
         }
-        
+
         /// 
         /// All generic functions here
         /// 
         #region Functions
-       
+
         private void AddNewLogControl(string filePath)
         {
             SaveRecentFile(filePath, true, MRLogsList);
             //Add tabpage with date as name
-            string fileTabText = Path.GetFileName(filePath.Remove(filePath.Length-4)).Replace('.', '_').Replace(' ', '_').Replace('-', '_');
+            string fileTabText = Path.GetFileName(filePath.Remove(filePath.Length - 4)).Replace('.', '_').Replace(' ', '_').Replace('-', '_');
             fileTabText = CheckIfDuplicateDate(fileTabText);
 
             TabPage tab = new TabPage();
@@ -75,7 +75,7 @@ namespace Analyze_alarms
             var uc = CreateNewLogFromCSV(myDataTables[myDataTables.Count - 1]);
             uc.Name = fileTabText;
             myUCs.Add(uc);
-            fileTabControl.TabPages[fileTabControl.TabCount - 1].Controls.Add(uc);          
+            fileTabControl.TabPages[fileTabControl.TabCount - 1].Controls.Add(uc);
         }
 
         private void PrepareWindowForNewFiles(string[] filePaths = null, string filePath = "")
@@ -164,7 +164,7 @@ namespace Analyze_alarms
                     {
                         string[] rows = sr.ReadLine().Split(';');
                         DataRow dr = dt.NewRow();
-                        
+
                         for (int i = 0; i < headers.Length; i++)
                         {
                             rows[i] = rows[i].Trim('"');
@@ -177,29 +177,29 @@ namespace Analyze_alarms
                                         double templong;
                                         if (double.TryParse(rows[i], out templong))
                                         {
-                                            dr[i+1] = templong;
+                                            dr[i + 1] = templong;
                                         }
                                         break;
 
                                     case 2:
-                                        dr[i+1] = short.Parse(rows[i]);
+                                        dr[i + 1] = short.Parse(rows[i]);
                                         break;
 
                                     case 3:
-                                        dr[i+1] = short.Parse(rows[i]);
+                                        dr[i + 1] = short.Parse(rows[i]);
                                         break;
 
                                     case 4:
-                                        dr[i+1] = short.Parse(rows[i]);
+                                        dr[i + 1] = short.Parse(rows[i]);
                                         break;
 
                                     case 13:
                                         string temp = rows[i].Replace('.', '-');
-                                        dr[i+1] = DateTime.ParseExact(temp, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
+                                        dr[i + 1] = DateTime.ParseExact(temp, "dd-MM-yyyy HH:mm:ss", CultureInfo.InvariantCulture);
                                         break;
 
                                     default:
-                                        dr[i+1] = rows[i];
+                                        dr[i + 1] = rows[i];
                                         break;
                                 }
                             }
@@ -247,7 +247,7 @@ namespace Analyze_alarms
             }
             stringToWrite.Flush(); //write stream to file
             stringToWrite.Close(); //close the stream and reclaim memory
-            
+
         }
 
         private void AddRecentMenuItems(Queue<string> mru, bool log)
@@ -259,14 +259,14 @@ namespace Analyze_alarms
             {
                 //create new menu for each item in list
                 if (log)
-                {                    
+                {
                     ToolStripMenuItem logRecent = new ToolStripMenuItem(item, null, RecentLogs_click);
                     //add the menu to "recent" menu
                     //fileRecent.Text = GetDateFromString(item);
                     recentLogsToolStripMenuItem.DropDownItems.Add(logRecent);
                 }
                 else
-                {                    
+                {
                     ToolStripMenuItem projectRecent = new ToolStripMenuItem(item, null, RecentProjects_click);
                     //add the menu to "recent" menu
                     //fileRecent.Text = GetDateFromString(item);
@@ -289,13 +289,13 @@ namespace Analyze_alarms
         private string[] RemoveLineFromFile(string[] lines, string removeThis)
         {
             string[] s = lines;
-            
-            for(int i = 0; i < lines.Length; i++)
+
+            for (int i = 0; i < lines.Length; i++)
             {
                 if (lines[i] == removeThis)
                 {
-                    s[i] = null;                    
-                }                
+                    s[i] = null;
+                }
             }
             return s;
         }
@@ -326,41 +326,172 @@ namespace Analyze_alarms
             catch (Exception) { }
         }
 
-        static void CreateStandardSettingsXML()
+        private void CreateStandardSettingsXML()
         {
             // TODO: Create a functioning example file
+            try
+            {
+                XDocument doc = new XDocument(new XDeclaration("1.0", "utf-8", "true"),
+                                new XElement("classes",
+                                    new XElement("class", new XAttribute("className", "Logbits"),
+                                                          new XAttribute("classNr", "64"),
+                                                          new XAttribute("classType", "1"),
+                                                          new XAttribute("messageNr", "128"),
+                                                          new XAttribute("subClassMember", "0"),
+                                                          new XAttribute("prodActive", "1"),
+                                                          new XAttribute("shiftActive", "0")),
+                                    new XElement("class", new XAttribute("className", "Direct stop Tileline"),
+                                                          new XAttribute("classNr", "77"),
+                                                          new XAttribute("classType", "2"),
+                                                          new XAttribute("messageNr", "0"),
+                                                          new XAttribute("subClassMember", "0"),
+                                                          new XAttribute("prodActive", "0"),
+                                                          new XAttribute("shiftActive", "0")),
+                                    new XElement("class", new XAttribute("className", "Direct stop Racking"),
+                                                          new XAttribute("classNr", "69"),
+                                                          new XAttribute("classType", "2"),
+                                                          new XAttribute("messageNr", "0"),
+                                                          new XAttribute("subClassMember", "0"),
+                                                          new XAttribute("prodActive", "0"),
+                                                          new XAttribute("shiftActive", "0")),
+                                    new XElement("class", new XAttribute("className", "Direct stop Carousel"),
+                                                          new XAttribute("classNr", "75"),
+                                                          new XAttribute("classType", "2"),
+                                                          new XAttribute("messageNr", "0"),
+                                                          new XAttribute("subClassMember", "0"),
+                                                          new XAttribute("prodActive", "0"),
+                                                          new XAttribute("shiftActive", "0")),
+                                    new XElement("class", new XAttribute("className", "Direct stop Packaging"),
+                                                          new XAttribute("classNr", "80"),
+                                                          new XAttribute("classType", "2"),
+                                                          new XAttribute("messageNr", "0"),
+                                                          new XAttribute("subClassMember", "0"),
+                                                          new XAttribute("prodActive", "0"),
+                                                          new XAttribute("shiftActive", "0")),
+                                    new XElement("class", new XAttribute("className", "Indirect stop alarm 1 Tileline"),
+                                                          new XAttribute("classNr", "81"),
+                                                          new XAttribute("classType", "3"),
+                                                          new XAttribute("messageNr", "938"),
+                                                          new XAttribute("subClassMember", "73"),
+                                                          new XAttribute("prodActive", "0"),
+                                                          new XAttribute("shiftActive", "0")),
+                                    new XElement("class", new XAttribute("className", "Indirect stop alarm 2 Tileline"),
+                                                          new XAttribute("classNr", "81"),
+                                                          new XAttribute("classType", "3"),
+                                                          new XAttribute("messageNr", "939"),
+                                                          new XAttribute("subClassMember", "73"),
+                                                          new XAttribute("prodActive", "0"),
+                                                          new XAttribute("shiftActive", "0")),
+                                    new XElement("class", new XAttribute("className", "Indirect stop alarm 3 Tileline"),
+                                                          new XAttribute("classNr", "81"),
+                                                          new XAttribute("classType", "3"),
+                                                          new XAttribute("messageNr", "940"),
+                                                          new XAttribute("subClassMember", "73"),
+                                                          new XAttribute("prodActive", "0"),
+                                                          new XAttribute("shiftActive", "0")),
+                                    new XElement("class", new XAttribute("className", "Indirect stop alarm 1 Racking"),
+                                                          new XAttribute("classNr", "70"),
+                                                          new XAttribute("classType", "3"),
+                                                          new XAttribute("messageNr", "560"),
+                                                          new XAttribute("subClassMember", "67"),
+                                                          new XAttribute("prodActive", "0"),
+                                                          new XAttribute("shiftActive", "0")),
+                                    new XElement("class", new XAttribute("className", "Indirect stop alarm 2 Racking"),
+                                                          new XAttribute("classNr", "70"),
+                                                          new XAttribute("classType", "3"),
+                                                          new XAttribute("messageNr", "570"),
+                                                          new XAttribute("subClassMember", "67"),
+                                                          new XAttribute("prodActive", "0"),
+                                                          new XAttribute("shiftActive", "0")),
+                                    new XElement("class", new XAttribute("className", "Indirect stop alarm 1 Curing"),
+                                                          new XAttribute("classNr", "70"),
+                                                          new XAttribute("classType", "3"),
+                                                          new XAttribute("messageNr", "566"),
+                                                          new XAttribute("subClassMember", "68"),
+                                                          new XAttribute("prodActive", "0"),
+                                                          new XAttribute("shiftActive", "0")),
+                                    new XElement("class", new XAttribute("className", "Indirect stop alarm 1 Carousel"),
+                                                          new XAttribute("classNr", "78"),
+                                                          new XAttribute("classType", "3"),
+                                                          new XAttribute("messageNr", "1767"),
+                                                          new XAttribute("subClassMember", "74"),
+                                                          new XAttribute("prodActive", "0"),
+                                                          new XAttribute("shiftActive", "0")),
+                                    new XElement("class", new XAttribute("className", "Indirect stop alarm 1 Packaging"),
+                                                          new XAttribute("classNr", "79"),
+                                                          new XAttribute("classType", "3"),
+                                                          new XAttribute("messageNr", "914"),
+                                                          new XAttribute("subClassMember", "82"),
+                                                          new XAttribute("prodActive", "0"),
+                                                          new XAttribute("shiftActive", "0")),
+                                    new XElement("class", new XAttribute("className", "Indirect stop alarm 2 Packaging"),
+                                                          new XAttribute("classNr", "79"),
+                                                          new XAttribute("classType", "3"),
+                                                          new XAttribute("messageNr", "1652"),
+                                                          new XAttribute("subClassMember", "83"),
+                                                          new XAttribute("prodActive", "0"),
+                                                          new XAttribute("shiftActive", "0")),
+                                    new XElement("class", new XAttribute("className", "Subclass 1 Tileline"),
+                                                          new XAttribute("classNr", "73"),
+                                                          new XAttribute("classType", "4"),
+                                                          new XAttribute("messageNr", "0"),
+                                                          new XAttribute("subClassMember", "0"),
+                                                          new XAttribute("prodActive", "0"),
+                                                          new XAttribute("shiftActive", "0")),
+                                    new XElement("class", new XAttribute("className", "Subclass 1 Racking"),
+                                                          new XAttribute("classNr", "67"),
+                                                          new XAttribute("classType", "4"),
+                                                          new XAttribute("messageNr", "0"),
+                                                          new XAttribute("subClassMember", "0"),
+                                                          new XAttribute("prodActive", "0"),
+                                                          new XAttribute("shiftActive", "0")),
+                                    new XElement("class", new XAttribute("className", "Subclass 1 Curing"),
+                                                          new XAttribute("classNr", "68"),
+                                                          new XAttribute("classType", "4"),
+                                                          new XAttribute("messageNr", "0"),
+                                                          new XAttribute("subClassMember", "0"),
+                                                          new XAttribute("prodActive", "0"),
+                                                          new XAttribute("shiftActive", "0")),
+                                    new XElement("class", new XAttribute("className", "Subclass 1 General RackingCuring"),
+                                                          new XAttribute("classNr", "66"),
+                                                          new XAttribute("classType", "4"),
+                                                          new XAttribute("messageNr", "0"),
+                                                          new XAttribute("subClassMember", "0"),
+                                                          new XAttribute("prodActive", "0"),
+                                                          new XAttribute("shiftActive", "0")),
+                                    new XElement("class", new XAttribute("className", "Subclass 1 Carousel"),
+                                                          new XAttribute("classNr", "74"),
+                                                          new XAttribute("classType", "4"),
+                                                          new XAttribute("messageNr", "0"),
+                                                          new XAttribute("subClassMember", "0"),
+                                                          new XAttribute("prodActive", "0"),
+                                                          new XAttribute("shiftActive", "0")),
+                                    new XElement("class", new XAttribute("className", "Subclass 1 Packaging"),
+                                                          new XAttribute("classNr", "82"),
+                                                          new XAttribute("classType", "4"),
+                                                          new XAttribute("messageNr", "0"),
+                                                          new XAttribute("subClassMember", "0"),
+                                                          new XAttribute("prodActive", "0"),
+                                                          new XAttribute("shiftActive", "0")),
+                                    new XElement("class", new XAttribute("className", "Subclass 2 Packaging"),
+                                                          new XAttribute("classNr", "83"),
+                                                          new XAttribute("classType", "4"),
+                                                          new XAttribute("messageNr", "0"),
+                                                          new XAttribute("subClassMember", "0"),
+                                                          new XAttribute("prodActive", "0"),
+                                                          new XAttribute("shiftActive", "0"))
+                                                          ));
 
-
-            //Creates pretty much this
-            //<classes>
-            //    <class className=""Test"" classNr=""1"" classType=""1"" messageNr=""123"" subClassMember=""0"" prodActive=""0"" shiftActive=""1""/>
-            //    <class className=""Test"" classNr=""1"" classType=""1"" messageNr=""123"" subClassMember=""0"" prodActive=""0"" shiftActive=""1""/>
-            //</classes>";
-
-            XDocument doc = new XDocument(new XDeclaration("1.0", "utf-8", "true"),
-                            new XElement("classes",
-                                new XElement("class", new XAttribute("className", "Test"),
-                                                      new XAttribute("classNr", "1"),
-                                                      new XAttribute("classType", "1"),
-                                                      new XAttribute("messageNr", "123"),
-                                                      new XAttribute("subClassMember", "0"),
-                                                      new XAttribute("prodActive", "0"),
-                                                      new XAttribute("shiftActive", "1")),
-                                new XElement("class", new XAttribute("className", "Test"),
-                                                      new XAttribute("classNr", "1"),
-                                                      new XAttribute("classType", "1"),
-                                                      new XAttribute("messageNr", "123"),
-                                                      new XAttribute("subClassMember", "0"),
-                                                      new XAttribute("prodActive", "0"),
-                                                      new XAttribute("shiftActive", "1"))));
-
-
-
-            doc.Save(System.Environment.CurrentDirectory + logSettingsFileName);
-
+                doc.Save(System.Environment.CurrentDirectory + logSettingsFileName);
+                LoadLogSettingsFromFile();
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
 
-        static void UpdateSettingsXML()
+        private void UpdateSettingsXML()
         {
 
             XDocument doc = new XDocument(new XDeclaration("1.0", "utf-8", "true"), new XElement("classes"));
@@ -417,7 +548,7 @@ namespace Analyze_alarms
 
         private UC_NewLog CreateNewLogFromCSV(DataTable data)
         {
-            var uc = new UC_NewLog(data, this);   
+            var uc = new UC_NewLog(data, this);
             return uc;
         }
 
@@ -426,7 +557,7 @@ namespace Analyze_alarms
             var uc = new UC_NewLog(controlName, this);
             return uc;
         }
-        
+
         private void OpenLogFile(string filePath = "")
         {
             if (filePath == "")
@@ -505,7 +636,7 @@ namespace Analyze_alarms
                             duplicates = true;
                         }
                     }
-                }   
+                }
             }
 
             if (duplicates) MessageBox.Show("You can't add files with the same filename as any existing files!");
@@ -524,7 +655,7 @@ namespace Analyze_alarms
                 {
                     sw.WriteLine(name);
                     sw.WriteLine(ucCount.ToString());
-                    foreach(string s in ucNames)
+                    foreach (string s in ucNames)
                     {
                         sw.WriteLine(s);
                     }
@@ -551,7 +682,7 @@ namespace Analyze_alarms
                 while ((s = sr.ReadLine()) != null)
                 {
                     ls.Add(s);
-                }                
+                }
                 return ls;
             }
         }
@@ -580,7 +711,7 @@ namespace Analyze_alarms
 
                 foreach (UC_NewLog uc in myUCs)
                 {
-                    summary= db.LoadSummaryData(projectName + "_sData_" + uc.Name);
+                    summary = db.LoadSummaryData(projectName + "_sData_" + uc.Name);
                     reportFormData = db.LoadReportData(projectName + "_rData_" + uc.Name);
                     dataTableRowsList = db.LoadDataTablesData(projectName + "_dTable_" + uc.Name);
                     analyzedRows = db.LoadAnalyzedRowsData(projectName + "_aRows_" + uc.Name);
@@ -718,15 +849,15 @@ namespace Analyze_alarms
         private void InsertNewUCFromSave(Project project)
         {
             myUCs.Clear();
-            foreach(string name in project.UserControlNames)
-            {                
+            foreach (string name in project.UserControlNames)
+            {
                 myUCs.Add(CreateNewLogFromOpenedProject(name));
 
                 TabPage tab = new TabPage();
                 tab.Text = myUCs[myUCs.Count - 1].Name;
                 tab.Controls.Add(myUCs[myUCs.Count - 1]);
-                fileTabControl.TabPages.Add(tab);                
-            }                        
+                fileTabControl.TabPages.Add(tab);
+            }
         }
         #endregion
 
@@ -780,8 +911,8 @@ namespace Analyze_alarms
                 UpdateSettingsXML();
             }
 
-        }    
-        
+        }
+
         private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (myUCs.Count == 0)
@@ -793,7 +924,7 @@ namespace Analyze_alarms
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
-        {           
+        {
             if (openedProjectData != null && openedProjectData.ProjectName != null && openedProjectData.ProjectName != "")
             {
                 SaveProject(false, openedProjectData.FilePath);

@@ -23,5 +23,21 @@ namespace Analyze_alarms.Classes
         public string customLogoPath { get; set; }
         public string[] attachmentsFilePaths { get; set; } 
 
+        public ReportFormData(){}
+
+        public void Init()
+        {
+            this.tb_Header_Text = "Report header...";
+            this.tb_ReportFrom_Text = "Report from...";
+            this.tb_ReportBy_Text = "Report by...";
+            this.tb_FreeText_Text = "";
+            this.dtp_ReportDate = DateTime.Now;
+            this.chk_RowChart_Checked = true;
+            this.chk_PieChart_Checked = true;
+            this.chk_Summary_Checked = true;
+            this.customLogoPath = "";
+        }
+        
+
     }
 }

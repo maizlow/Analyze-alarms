@@ -62,6 +62,7 @@ namespace Analyze_alarms
             InitializeComponent();
             this.parent = parent;
             this.Name = controlName;
+
         }
 
         #region FUNCTIONS
@@ -293,7 +294,6 @@ namespace Analyze_alarms
                                 //Then it needs to be treated as an unknown stop and but the time on "Unknown"
                                 if (Convert.ToInt16(data.Rows[lastStopRow].ItemArray[3]) == ProdRunning_LB[0])
                                 {
-                                    //TODO: Handle Unknown stop cause
                                     StopCauseMsgNumber = 9999;
                                     StopCauseMsgText = "Unknown cause";
                                 }
@@ -342,7 +342,7 @@ namespace Analyze_alarms
                                             if (indirectStopFound)
                                             {
                                                 bool found = false;
-                                                for (int c = firstStopRow; c > 0; c--)
+                                                for (int c = lastStopRow; c > 0; c--)
                                                 {
                                                     //Check vs. settings
                                                     foreach (LogSettings ls in MainForm.logSettings)
@@ -350,11 +350,20 @@ namespace Analyze_alarms
                                                         //Look for a class nr that match the indirect stops subclass member
                                                         if (ls.messageNr == StopCauseMsgNumber && ls.subClassMember == Convert.ToInt16(data.Rows[c].ItemArray[3]))
                                                         {
-                                                            StopCauseMsgNumber = Convert.ToInt16(data.Rows[c].ItemArray[4]);
-                                                            StopCauseMsgText = data.Rows[c].ItemArray[6].ToString();
-                                                            stopCauseRow = c;
-                                                            found = true;
-                                                            break;
+                                                            if (Convert.ToBoolean(data.Rows[c].ItemArray[2]) == true)
+                                                            {
+                                                                StopCauseMsgNumber = Convert.ToInt16(data.Rows[c].ItemArray[4]);
+                                                                StopCauseMsgText = data.Rows[c].ItemArray[6].ToString();
+                                                                stopCauseRow = c;
+                                                                found = true;
+                                                                break;
+                                                            }
+                                                            //If finding a subclass that match but if it is allread state 0 set alarm to Indirect class
+                                                            else
+                                                            {
+                                                                found = true;
+                                                                break;
+                                                            }
                                                         }
                                                     }
                                                     if (found) break;
@@ -374,10 +383,10 @@ namespace Analyze_alarms
                                 if (StopCauseMsgNumber > 0)
                                 {
                                     //Record stopcause in summary
-                                    Classes.Summary sum = CheckIfEntryExist(StopCauseMsgNumber);
+                                    Summary sum = CheckIfEntryExist(StopCauseMsgNumber);
                                     if (sum == null)
                                     {
-                                        Classes.Summary newSum = new Classes.Summary();
+                                        Summary newSum = new Summary();
                                         newSum.Amount++;
                                         newSum.MsgNumber = StopCauseMsgNumber;
                                         newSum.MsgText = StopCauseMsgText;
@@ -564,19 +573,19 @@ namespace Analyze_alarms
         {
             ReportTab reportData;
             if (myReportFormData != null)
-                reportData = new ReportTab(this, myReportFormData);
+            {
+                reportData = new ReportTab(this, myReportFormData);                
+            }
             else
             {
                 myReportFormData = new ReportFormData();
+                myReportFormData.Init();
                 reportData = new ReportTab(this, myReportFormData);
             }     
             
             if (!fromDB) tp_Report = reportData.CreateTabPage();
             else tp_Report = reportData.CreateTabPage(fromDB);
-
-            //TODO: Fill controls with data from DB if loaded that way
-
-
+            
             tabControl1.TabPages.Add(tp_Report);
         }
 
