@@ -24,6 +24,7 @@ namespace Analyze_alarms
         public ReportFormData myReportFormData;// = new Classes.ReportFormData();
         public List<DataTableRowClass> myDataTableRowsList = new List<Classes.DataTableRowClass>();
         public List<AnalyzedRows> analyzedRows = new List<AnalyzedRows>();
+        public List<AlarmInterval> alarmIntervals = new List<AlarmInterval>();
 
         private int nrOfSummaryEntrys;
         private TabPage tp_Report;
@@ -390,8 +391,8 @@ namespace Analyze_alarms
                                         newSum.Amount++;
                                         newSum.MsgNumber = StopCauseMsgNumber;
                                         newSum.MsgText = StopCauseMsgText;
-                                        newSum.stopDuration += stopDuration;
-                                        newSum.runTime += runTime;
+                                        newSum.StopDuration += stopDuration;
+                                        newSum.RunTime += runTime;
                                         mySummary.Add(newSum);
                                         runTime = TimeSpan.Zero;
                                     }
@@ -400,9 +401,18 @@ namespace Analyze_alarms
                                         sum.Amount++;
                                         sum.MsgNumber = StopCauseMsgNumber;
                                         sum.MsgText = StopCauseMsgText;
-                                        sum.stopDuration += stopDuration;
-                                        sum.runTime += runTime;
+                                        sum.StopDuration += stopDuration;
+                                        sum.RunTime += runTime;
                                         runTime = TimeSpan.Zero;
+                                    }
+                                    if (alarmIntervals != null)
+                                    {
+                                        alarmIntervals.Add(new AlarmInterval(stopTime, stopDuration, StopCauseMsgText));
+                                    }
+                                    else
+                                    {
+                                        alarmIntervals = new List<AlarmInterval>();
+                                        alarmIntervals.Add(new AlarmInterval(stopTime, stopDuration, StopCauseMsgText));
                                     }
                                 }
                             }
@@ -433,7 +443,7 @@ namespace Analyze_alarms
         private void CreateSummaryTab()
         {
             //Sort list in decsending order on stopDuration
-            mySummary.Sort((a, b) => TimeSpan.Compare(b.stopDuration, a.stopDuration));
+            mySummary.Sort((a, b) => TimeSpan.Compare(b.StopDuration, a.StopDuration));
             //Bind the list to BindingList and then create a source, this ensure any editing in the DGV will
             //be reflected back to the list.
             var bindingList = new BindingList<Summary>(mySummary);
@@ -460,8 +470,8 @@ namespace Analyze_alarms
             foreach (Classes.Summary s in mySummary)
             {
                 TotalAmountOfStops += s.Amount;
-                TotalStopTime += s.stopDuration;
-                TotalRunTime += s.runTime;
+                TotalStopTime += s.StopDuration;
+                TotalRunTime += s.RunTime;
                 nrOfSummaryEntrys++;
             }
 
@@ -529,14 +539,18 @@ namespace Analyze_alarms
             if (!tp_Diagram.Controls.ContainsKey("rowControl"))
             {
                 Control c = myCharts.CreateRowChart(mySummary);
-                c.BringToFront();
                 tp_Diagram.Controls.Add(c);
             }
             //Pie chart
             if (!tp_Diagram.Controls.ContainsKey("pieControl"))
             {
                 Control c = myCharts.CreatePieChart(mySummary);
-                c.BringToFront();
+                tp_Diagram.Controls.Add(c);
+            }
+            //Scatter chart
+            if (!tp_Diagram.Controls.ContainsKey("scatterControl"))
+            {
+                Control c = myCharts.CreateScatterChart(alarmIntervals);
                 tp_Diagram.Controls.Add(c);
             }
 
@@ -562,6 +576,7 @@ namespace Analyze_alarms
             tp_Diagram.Controls.Add(btn_Pie);
 
             tp_Diagram.Controls[tp_Diagram.Controls.IndexOfKey("rowControl")].BringToFront();
+            tp_Diagram.Controls[tp_Diagram.Controls.IndexOfKey("scatterControl")].BringToFront();
             btn_Row.BringToFront();
             btn_Pie.BringToFront();
             label4.Visible = false;

@@ -2,18 +2,27 @@
 using System.Collections.Generic;
 using LiveCharts;
 using LiveCharts.Wpf;
+using LiveCharts.Defaults;
+using LiveCharts.Configurations;
 using System.Windows.Forms;
 using System.Windows.Media;
+using System.Reflection;
 
 namespace Analyze_alarms.Classes
 {
+    public class DateModel
+    {
+        public System.DateTime DateTime { get; set; }
+        public double Value { get; set; }
+    }
+
     public class Charts
     {
         private FontFamily fontFamily = new FontFamily("Microsoft Sans Serif");
         private Brush foreGround = Brushes.Black;
         private System.Windows.FontWeight fontWeight = System.Windows.FontWeights.Light;
         private TimeSpan animationSpeed = new TimeSpan(3000000);
-        
+
 
         public Charts(TimeSpan animationSpeed)
         {
@@ -46,7 +55,7 @@ namespace Analyze_alarms.Classes
                     FontSize = 11,
                 };
                 chart.Series.Add(series);
-                chart.Series[chart.Series.Count - 1].Values.Add(Convert.ToInt32(s.stopDuration.TotalMinutes));
+                chart.Series[chart.Series.Count - 1].Values.Add(Convert.ToInt32(s.StopDuration.TotalMinutes));
             }
 
             chart.LegendLocation = LegendLocation.Right;
@@ -135,7 +144,7 @@ namespace Analyze_alarms.Classes
 
             foreach (Summary s in mySummary)
             {
-                chart.Series[0].Values.Add(Convert.ToInt32(s.stopDuration.TotalMinutes));
+                chart.Series[0].Values.Add(Convert.ToInt32(s.StopDuration.TotalMinutes));
                 chart.Series[1].Values.Add(s.Amount);
                 Y_Axis.Labels.Add(s.MsgText);
             }
@@ -153,6 +162,88 @@ namespace Analyze_alarms.Classes
 
             return chart;
 
+        }
+
+
+        public class DateModel
+        {
+            public System.DateTime DateTime { get; set; }
+            public double Value { get; set; }
+        }
+
+        //TODO: Dettime scatter chart to show frequency at certain times of the day
+        public LiveCharts.WinForms.CartesianChart CreateScatterChart(List<AlarmInterval> alarmIntervals)
+        {
+            var chart = new LiveCharts.WinForms.CartesianChart();
+            chart.Name = "scatterControl";
+
+            var dayConfig = Mappers.Xy<DateModel>()
+                .X(dayModel => (double)dayModel.DateTime.Ticks / TimeSpan.FromHours(1).Ticks)
+                .Y(dayModel => dayModel.Value);
+
+            //ScatterSeries series = new ScatterSeries(dayConfig);
+            var r = new Random();
+            var mySeries = new SeriesCollection(dayConfig);
+
+
+            ChartValues<DateModel> val = new ChartValues<DateModel>();
+            ScatterSeries s = new ScatterSeries(dayConfig);
+
+            foreach (AlarmInterval a in alarmIntervals)
+            {
+                s = new ScatterSeries(dayConfig)
+                {
+                    Title = a.AlarmText,
+                    MaxPointShapeDiameter = 20,
+                    PointGeometry = DefaultGeometries.Diamond,
+                    Fill = Brushes.Blue
+                };
+
+                mySeries.Add(s);
+
+                val.Add(new DateModel
+                {
+                    DateTime = a.TimeStamp,
+                    Value = a.Duration.TotalSeconds + 20
+                });
+
+                mySeries[mySeries.Count - 1].Values = val;
+            }
+
+            chart.Series = mySeries;
+
+            chart.AxisX.Add(new Axis
+            {
+                LabelFormatter = value => new System.DateTime((long)(value * TimeSpan.FromHours(1).Ticks)).ToString("t"),
+                Foreground = foreGround
+            });
+
+            chart.AxisY.Add(new Axis
+            {
+                Title = "Duration [min]",
+                MinValue = 0,
+                Foreground = foreGround
+            });
+
+            //    //series.Values = q;
+
+            //    //    TimeSpan logLength = finish.Subtract(start);
+
+            //    //    chart.AxisX.Add(new Axis
+            //    //    {
+            //    //        Foreground = foreGround,
+            //    //        LabelFormatter = new Func<double, string>(va => va * start.ToOADate()).ToString("HH:mm");
+            //    //});
+
+            System.Drawing.Image img = new System.Drawing.Bitmap(System.Environment.CurrentDirectory + "\\ChartBackground2.png");
+            chart.BackgroundImage = img;
+            chart.BackgroundImageLayout = ImageLayout.Stretch;
+            chart.Dock = DockStyle.Fill;
+            chart.Text = "Stop analysis";
+            chart.DisableAnimations = true;
+            chart.ForeColor = System.Drawing.Color.Black;
+            
+            return chart;
         }
     }
 }

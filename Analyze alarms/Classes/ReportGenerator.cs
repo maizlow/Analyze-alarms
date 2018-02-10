@@ -327,7 +327,7 @@ namespace Analyze_alarms.Classes
                 gfx.DrawRectangle(pen, loopRect);
 
                 loopRect = new XRect(startX + bigBoxW + smallBoxW + 1, startY + (rectHeight * y) + 5, rects[2].Width - 2, rects[2].Height - 2);
-                CreateTextFormatter(gfx, XParagraphAlignment.Center).DrawString(parent.mySummary[i].stopDuration.ToString(@"hh\:mm\:ss"), font, TextBrush, loopRect, XStringFormats.TopLeft);
+                CreateTextFormatter(gfx, XParagraphAlignment.Center).DrawString(parent.mySummary[i].StopDuration.ToString(@"hh\:mm\:ss"), font, TextBrush, loopRect, XStringFormats.TopLeft);
                 y++;
             }
         }
