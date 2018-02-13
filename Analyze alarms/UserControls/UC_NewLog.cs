@@ -19,6 +19,7 @@ namespace Analyze_alarms
         private MainForm parent;
         private DataTable data;
         TimeSpan runTime = new TimeSpan();
+        private string folderPath;
 
         public List<Summary> mySummary = new List<Classes.Summary>();
         public ReportFormData myReportFormData;// = new Classes.ReportFormData();
@@ -71,11 +72,11 @@ namespace Analyze_alarms
 
         public void Init(DataTable data)
         {   
-
+            folderPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
             InitDataTable(data);
             InitDateTimePickers();
             this.Dock = DockStyle.Fill;
-            pictureBox1.Image = new Bitmap(Environment.CurrentDirectory + "\\ChartBackground2.png");
+            pictureBox1.Image = new Bitmap(folderPath + "\\ChartBackground2.png");
         }
 
         public void PopulateDataFromDB(List<Summary> summaryList, ReportFormData reportFormData, List<DataTableRowClass> dataRowList, List<AnalyzedRows> analyzedRows)
@@ -560,7 +561,7 @@ namespace Analyze_alarms
             btn_Row.Name = "btn_Row";
             btn_Row.Click += new EventHandler(OnBarBtnClick);
             btn_Row.Size = new Size(37, 34);
-            var image = new Bitmap(System.Environment.CurrentDirectory + "\\RowChart.png");
+            var image = new Bitmap(folderPath + "\\RowChart.png");
             btn_Row.Image = new Bitmap(image, 25, 25);
             btn_Row.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             btn_Row.Location = new Point(3, 3);
@@ -569,7 +570,7 @@ namespace Analyze_alarms
             btn_Pie.Name = "btn_Pie";
             btn_Pie.Click += new EventHandler(OnPieBtnClick);
             btn_Pie.Size = new Size(37, 34);
-            var image2 = new Bitmap(System.Environment.CurrentDirectory + "\\PieChart.png");
+            var image2 = new Bitmap(folderPath + "\\PieChart.png");
             btn_Pie.Image = new Bitmap(image2, 25, 25);
             btn_Pie.Anchor = AnchorStyles.Top | AnchorStyles.Left;
             btn_Pie.Location = new Point(btn_Row.Location.X + btn_Row.Width + 3, 3);

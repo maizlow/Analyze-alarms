@@ -23,12 +23,15 @@ namespace Analyze_alarms.Classes
         private string HeaderText, ReportFromText, ReportByText, LogoFilePathText;
         private bool RowChartChk, PieChartChk, SummaryChk;
 
+        private string folderPath;
 
         public ReportTab(UC_NewLog userControl, ReportFormData RFD)
         {
+            folderPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
             this.myUC = userControl;
             rpData = RFD;
             mrd = new MyReportDefault();
+
         }
 
         /// <summary> 
@@ -309,12 +312,13 @@ namespace Analyze_alarms.Classes
             pb_CustomLogo.SizeMode = PictureBoxSizeMode.StretchImage;
             pb_CustomLogo.BorderStyle = BorderStyle.FixedSingle;
 
-            if (!fromDB && mrd.LogoFilePath == "") LogoFilePathText = Environment.CurrentDirectory + "\\logo.png";
+            if (!fromDB && mrd.LogoFilePath == "") LogoFilePathText = folderPath + "\\logo.png";
             else if (rpData.customLogoPath != "" && rpData.customLogoPath != null) LogoFilePathText = rpData.customLogoPath;
             else if (mrd.LogoFilePath != "") LogoFilePathText = mrd.LogoFilePath;
-            else LogoFilePathText = Environment.CurrentDirectory + "\\logo.png";
+            else LogoFilePathText = folderPath + "\\logo.png";
 
-            pb_CustomLogo.Image = Image.FromFile(LogoFilePathText);
+            if (LogoFilePathText != null)
+                pb_CustomLogo.Image = Image.FromFile(LogoFilePathText);
 
             pb_CustomLogo.Size = new Size(50, 30);
             pb_CustomLogo.Location = new Point(btn_AddCustomLogo.Location.X + btn_AddCustomLogo.Width + 10, btn_AddCustomLogo.Location.Y);
@@ -434,7 +438,8 @@ namespace Analyze_alarms.Classes
             }
             else
             {
-                pb.Image = Image.FromFile(System.Environment.CurrentDirectory + "\\logo.png");
+                
+                pb.Image = Image.FromFile(folderPath + "\\logo.png");
                 rpData.customLogoPath = "";
                 btn.Text = "Add custom logo";
                 LogoFilePathText = "";

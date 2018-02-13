@@ -18,7 +18,7 @@ namespace Analyze_alarms.Forms
 
         private void About_Load(object sender, EventArgs e)
         {
-            pictureBox2.Image = Image.FromFile(Environment.CurrentDirectory + "\\logo.png");
+            pictureBox2.Image = Image.FromFile(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + "\\logo.png");
         }
 
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)

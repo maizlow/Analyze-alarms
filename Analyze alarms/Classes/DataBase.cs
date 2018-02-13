@@ -9,7 +9,7 @@ namespace Analyze_alarms.Classes
 {
     public class DataBase
     {
-        private string dbPath = System.Environment.CurrentDirectory + "\\localdb.db";
+        private string dbPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + "\\localdb.db";
         
         #region SAVE
         public void SaveDataTable(List<DataTableRowClass> data, string colName)

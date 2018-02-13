@@ -50,7 +50,7 @@ namespace Analyze_alarms.Classes
         /// </summary>
         public MyReportDefault()
         {
-            if (File.Exists(Environment.CurrentDirectory + path))
+            if (File.Exists(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + path))
                 ReadXML();
         }
 
@@ -67,12 +67,12 @@ namespace Analyze_alarms.Classes
                     new XAttribute("LogoFilePath", LogoFilePath)));
 
             
-            doc.Save(Environment.CurrentDirectory + path);
+            doc.Save(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + path);
         }
 
         private void ReadXML()
         {
-            XElement item = XElement.Load(Environment.CurrentDirectory + path);
+            XElement item = XElement.Load(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + path);
 
             Header = item.Attribute("Header").Value;
             ReportFrom = item.Attribute("ReportFrom").Value;

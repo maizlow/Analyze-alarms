@@ -64,7 +64,7 @@ namespace Analyze_alarms.Classes
             chart.DefaultLegend.Margin = new System.Windows.Thickness(10, 1, 1, 1);
             chart.DefaultLegend.FontSize = 15;
             chart.DefaultLegend.Foreground = foreGround;
-            System.Drawing.Image img = new System.Drawing.Bitmap(System.Environment.CurrentDirectory + "\\ChartBackground2.png");
+            System.Drawing.Image img = new System.Drawing.Bitmap(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + "\\ChartBackground2.png");
             chart.BackgroundImage = img;
             chart.BackgroundImageLayout = ImageLayout.Stretch;
             chart.Dock = DockStyle.Fill;
@@ -153,7 +153,7 @@ namespace Analyze_alarms.Classes
             chart.AxisX.Add(X_Axis2);
             chart.AxisY.Add(Y_Axis);
 
-            System.Drawing.Image img = new System.Drawing.Bitmap(System.Environment.CurrentDirectory + "\\ChartBackground2.png");
+            System.Drawing.Image img = new System.Drawing.Bitmap(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + "\\ChartBackground2.png");
             chart.BackgroundImage = img;
             chart.BackgroundImageLayout = ImageLayout.Stretch;
             chart.Dock = DockStyle.Fill;
@@ -235,7 +235,7 @@ namespace Analyze_alarms.Classes
             //    //        LabelFormatter = new Func<double, string>(va => va * start.ToOADate()).ToString("HH:mm");
             //    //});
 
-            System.Drawing.Image img = new System.Drawing.Bitmap(System.Environment.CurrentDirectory + "\\ChartBackground2.png");
+            System.Drawing.Image img = new System.Drawing.Bitmap(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + "\\ChartBackground2.png");
             chart.BackgroundImage = img;
             chart.BackgroundImageLayout = ImageLayout.Stretch;
             chart.Dock = DockStyle.Fill;

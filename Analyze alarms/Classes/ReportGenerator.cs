@@ -24,7 +24,7 @@ namespace Analyze_alarms.Classes
         private static readonly double PageWidthLandscape = PageSizeConverter.ToSize(PageSize).Height;
         private static readonly double PageHeightLandscape = PageSizeConverter.ToSize(PageSize).Width;
         public double UsableWidth = PageWidth - Margin * 2;
-        private static readonly XImage ABECELogo = XImage.FromFile(System.Environment.CurrentDirectory + "\\logo.png");
+        private static readonly XImage ABECELogo = XImage.FromFile(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + "\\logo.png");
         private static XRect LogoRect = new XRect(PageWidth / 2 - ABECELogo.PointWidth / 2, Margin, ABECELogo.PointWidth, ABECELogo.PointHeight);
         private static readonly XFont Font = new XFont(FontFamily, 11, XFontStyle.Regular);
         private static XImage customerLogoImage = null;

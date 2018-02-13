@@ -18,7 +18,7 @@ namespace Analyze_alarms
 
         private void HELP_LogSettings_Load(object sender, EventArgs e)
         {
-            this.Icon = new Icon(System.Environment.CurrentDirectory + "\\logo.ico");
+            this.Icon = new Icon(System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + "\\logo.ico");
         }
     }
 }

@@ -26,12 +26,13 @@ namespace Analyze_alarms
         Queue<string> MRLogsList = new Queue<string>();
         Queue<string> MRProjectsList = new Queue<string>();
         const string logSettingsFileName = "\\logsettings.xml";
+        private string folderPath;
 
         public static List<LogSettings> logSettings;
 
         public MainForm()
         {
-            InitializeComponent();
+            InitializeComponent();            
             this.MinimumSize = new Size(640, 530);
             this.Size = this.MinimumSize;
             toolStripStatusLabel1.Text = "";
@@ -240,7 +241,7 @@ namespace Analyze_alarms
             AddRecentMenuItems(mru, log);
 
             StreamWriter stringToWrite =
-            new StreamWriter(Environment.CurrentDirectory + PathToRecentFile);
+            new StreamWriter(folderPath + PathToRecentFile);
             foreach (string item in mru)
             {
                 stringToWrite.WriteLine(item); //write list to stream
@@ -281,15 +282,15 @@ namespace Analyze_alarms
 
             if (log)
             {
-                string[] lines = File.ReadAllLines(Environment.CurrentDirectory + "\\RecentLogs.txt");
+                string[] lines = File.ReadAllLines(folderPath + "\\RecentLogs.txt");
                 string[] newLines = RemoveLineFromFile(lines, filePath);
-                File.WriteAllLines(Environment.CurrentDirectory + "\\RecentLogs.txt", newLines);
+                File.WriteAllLines(folderPath + "\\RecentLogs.txt", newLines);
             }
             else
             {
-                string[] lines = File.ReadAllLines(Environment.CurrentDirectory + "\\RecentProjects.txt");
+                string[] lines = File.ReadAllLines(folderPath + "\\RecentProjects.txt");
                 string[] newLines = RemoveLineFromFile(lines, filePath);
-                File.WriteAllLines(Environment.CurrentDirectory + "\\RecentProjects.txt", newLines);
+                File.WriteAllLines(folderPath + "\\RecentProjects.txt", newLines);
             }
             AddRecentMenuItems(mru, log);
 
@@ -314,10 +315,10 @@ namespace Analyze_alarms
             mru.Clear();
             try
             {
-                if (File.Exists(Environment.CurrentDirectory + pathEnd))
+                if (File.Exists(folderPath + pathEnd))
                 {
                     //read file stream
-                    StreamReader listToRead = new StreamReader(Environment.CurrentDirectory + pathEnd);
+                    StreamReader listToRead = new StreamReader(folderPath + pathEnd);
 
                     string line;
 
@@ -491,7 +492,7 @@ namespace Analyze_alarms
                                                           new XAttribute("shiftActive", "0"))
                                                           ));
 
-                doc.Save(System.Environment.CurrentDirectory + logSettingsFileName);
+                doc.Save(folderPath + logSettingsFileName);
                 LoadLogSettingsFromFile();
             }
             catch(Exception ex)
@@ -521,20 +522,20 @@ namespace Analyze_alarms
                 doc.Element("classes").Add(newElement);
             }
 
-            doc.Save(System.Environment.CurrentDirectory + logSettingsFileName);
+            doc.Save(folderPath + logSettingsFileName);
 
 
         }
 
         private void LoadLogSettingsFromFile()
         {
-            if (!File.Exists(System.Environment.CurrentDirectory + logSettingsFileName)) CreateStandardSettingsXML();
+            if (!File.Exists(folderPath + logSettingsFileName)) CreateStandardSettingsXML();
             else
             {
                 try
                 {
                     logSettings = new List<LogSettings>();
-                    foreach (XElement item in XElement.Load(System.Environment.CurrentDirectory + logSettingsFileName).Elements("class"))
+                    foreach (XElement item in XElement.Load(folderPath + logSettingsFileName).Elements("class"))
                     {
                         logSettings.Add(new LogSettings()
                         {
@@ -881,11 +882,12 @@ namespace Analyze_alarms
         #region Events
         private void Form1_Load(object sender, EventArgs e)
         {
-            this.Icon = new Icon(System.Environment.CurrentDirectory + "\\logo.ico");
+            folderPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
+            this.Icon = new Icon(folderPath + "\\logo.ico");
             LoadRecentMRUList("\\RecentLogs.txt", MRLogsList, true);
             LoadRecentMRUList("\\RecentProjects.txt", MRProjectsList, false);
             LoadLogSettingsFromFile();
-            pictureBox1.Image = Image.FromFile(Environment.CurrentDirectory + "\\logo.png");
+            pictureBox1.Image = Image.FromFile(folderPath + "\\logo.png");
         }
 
         private void isSaved_Valuechanged(object sender, PropertyChangedEventArgs e)
