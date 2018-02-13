@@ -26,6 +26,7 @@ namespace Analyze_alarms
         public List<AnalyzedRows> analyzedRows = new List<AnalyzedRows>();
         public List<AlarmInterval> alarmIntervals = new List<AlarmInterval>();
 
+        ReportTab reportData;
         private int nrOfSummaryEntrys;
         private TabPage tp_Report;
         private Charts myCharts = new Classes.Charts();
@@ -46,6 +47,7 @@ namespace Analyze_alarms
         //First dimension = ClassNr, Second dimension = MessageNr
         private int[] ProdRunning_LB = { 0, 0 };
         private int[] ShiftActive_LB = { 0, 0 };
+        
 
         //Constructor
         public UC_NewLog(DataTable data, MainForm parent)
@@ -63,20 +65,20 @@ namespace Analyze_alarms
             InitializeComponent();
             this.parent = parent;
             this.Name = controlName;
-
         }
 
         #region FUNCTIONS
 
         public void Init(DataTable data)
-        {            
+        {   
+
             InitDataTable(data);
             InitDateTimePickers();
             this.Dock = DockStyle.Fill;
-            pictureBox1.Image = new Bitmap(System.Environment.CurrentDirectory + "\\ChartBackground2.png");
+            pictureBox1.Image = new Bitmap(Environment.CurrentDirectory + "\\ChartBackground2.png");
         }
 
-        public void PopulateDataFromDB(List<Classes.Summary> summaryList, ReportFormData reportFormData, List<DataTableRowClass> dataRowList, List<AnalyzedRows> analyzedRows)
+        public void PopulateDataFromDB(List<Summary> summaryList, ReportFormData reportFormData, List<DataTableRowClass> dataRowList, List<AnalyzedRows> analyzedRows)
         {
             this.mySummary = summaryList;
             this.myReportFormData = reportFormData;
@@ -117,10 +119,10 @@ namespace Analyze_alarms
 
         private void ConvertDataTableToClass(DataTable data)
         {
-            Classes.DataTableRowClass temp = new Classes.DataTableRowClass();
+            DataTableRowClass temp = new DataTableRowClass();
             for (int i = 0; i < data.Rows.Count - 1; i++)
             {
-                temp = new Classes.DataTableRowClass(double.Parse(data.Rows[i].ItemArray[1].ToString()),
+                temp = new DataTableRowClass(double.Parse(data.Rows[i].ItemArray[1].ToString()),
                                                        short.Parse(data.Rows[i].ItemArray[2].ToString()),
                                                        short.Parse(data.Rows[i].ItemArray[3].ToString()),
                                                        short.Parse(data.Rows[i].ItemArray[4].ToString()),
@@ -184,10 +186,10 @@ namespace Analyze_alarms
 
         }
 
-        private Classes.Summary CheckIfEntryExist(int MsgNr)
+        private Summary CheckIfEntryExist(int MsgNr)
         {
             Classes.Summary sum = mySummary.Find(
-            delegate (Classes.Summary summ)
+            delegate (Summary summ)
             {
                 return summ.MsgNumber == MsgNr;
             });
@@ -548,11 +550,11 @@ namespace Analyze_alarms
                 tp_Diagram.Controls.Add(c);
             }
             //Scatter chart
-            if (!tp_Diagram.Controls.ContainsKey("scatterControl"))
-            {
-                Control c = myCharts.CreateScatterChart(alarmIntervals);
-                tp_Diagram.Controls.Add(c);
-            }
+            //if (!tp_Diagram.Controls.ContainsKey("scatterControl"))
+            //{
+            //    Control c = myCharts.CreateScatterChart(alarmIntervals);
+            //    tp_Diagram.Controls.Add(c);
+            //}
 
             var btn_Row = new Button();
             btn_Row.Name = "btn_Row";
@@ -576,7 +578,8 @@ namespace Analyze_alarms
             tp_Diagram.Controls.Add(btn_Pie);
 
             tp_Diagram.Controls[tp_Diagram.Controls.IndexOfKey("rowControl")].BringToFront();
-            tp_Diagram.Controls[tp_Diagram.Controls.IndexOfKey("scatterControl")].BringToFront();
+            //TODO: tp_Diagram.Controls[tp_Diagram.Controls.IndexOfKey("scatterControl")].BringToFront();
+            //VERY SLOW CODE
             btn_Row.BringToFront();
             btn_Pie.BringToFront();
             label4.Visible = false;
@@ -586,7 +589,7 @@ namespace Analyze_alarms
 
         private void CreateReportTab(bool fromDB = false)
         {
-            ReportTab reportData;
+            
             if (myReportFormData != null)
             {
                 reportData = new ReportTab(this, myReportFormData);                
@@ -655,7 +658,27 @@ namespace Analyze_alarms
         #endregion
 
         #region EVENTS
-      
+
+        /// <summary> 
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (components != null)
+                {
+                    components.Dispose();
+                }
+
+                tp_Report.Dispose();
+                reportData.Dispose();
+            }
+
+            base.Dispose(disposing);
+        }
+
         private void OnBarBtnClick(object sender, EventArgs e)
         {
             if (tp_Diagram.Controls.ContainsKey("rowControl") && tp_Diagram.Controls.ContainsKey("pieControl"))

@@ -12,6 +12,7 @@ namespace Analyze_alarms.Classes
     public class ReportTab : IDisposable
     {
         public ReportFormData rpData;
+        private MyReportDefault mrd;
         private UC_NewLog myUC;
         private TabPage tp_Report;
         public string saveReportFilePath;
@@ -19,10 +20,15 @@ namespace Analyze_alarms.Classes
         public OpenFileDialog openDialog;
         public Forms.PaintCharts paintChartsForm;
 
+        private string HeaderText, ReportFromText, ReportByText, LogoFilePathText;
+        private bool RowChartChk, PieChartChk, SummaryChk;
+
+
         public ReportTab(UC_NewLog userControl, ReportFormData RFD)
         {
             this.myUC = userControl;
             rpData = RFD;
+            mrd = new MyReportDefault();
         }
 
         /// <summary> 
@@ -31,6 +37,21 @@ namespace Analyze_alarms.Classes
         /// <returns>The tabpage</returns>
         public TabPage CreateTabPage(bool fromDB = false)
         {
+            if (fromDB == false)
+            {
+                rpData.tb_Header_Text = mrd.Header;
+                rpData.tb_Header_Edited = true;
+                rpData.tb_ReportFrom_Text = mrd.ReportFrom;
+                rpData.tb_ReportFrom_Edited = true;
+                rpData.tb_ReportBy_Text = mrd.ReportBy;
+                rpData.tb_ReportBy_Edited = true;
+                rpData.chk_RowChart_Checked = mrd.RowChart;                
+                rpData.chk_PieChart_Checked = mrd.PieChart;
+                rpData.chk_Summary_Checked = mrd.Summary;
+                rpData.customLogoPath = mrd.LogoFilePath;
+            }
+
+
             Size controlSize = new Size(244, 20);
             Font fontStyleBold = new Font(Label.DefaultFont, FontStyle.Bold);
 
@@ -56,9 +77,12 @@ namespace Analyze_alarms.Classes
             tb_ReportHeader.Enter += new EventHandler(tb_ReportHeader_Enter);
             tb_ReportHeader.Leave += new EventHandler(tb_ReportHeader_Leave);
 
-            if (!fromDB) tb_ReportHeader.Text = "Report header...";
-            else if (rpData.tb_Header_Text != "" && rpData.tb_Header_Text != null) tb_ReportHeader.Text = rpData.tb_Header_Text;
-            else tb_ReportHeader.Text = "Report header...";
+            if (!fromDB && mrd.Header == "") HeaderText = "Report header...";
+            else if (rpData.tb_Header_Text != "Report header..." && rpData.tb_Header_Text != null) HeaderText = rpData.tb_Header_Text;
+            else if (mrd.Header != "") HeaderText = mrd.Header;
+            else HeaderText = "Report header...";
+
+            tb_ReportHeader.Text = HeaderText;
 
             tb_ReportHeader.MaxLength = 35;
             tb_ReportHeader.Size = controlSize;
@@ -105,9 +129,12 @@ namespace Analyze_alarms.Classes
             tb_ReportFrom.Enter += new EventHandler(tb_ReportFrom_Enter);
             tb_ReportFrom.Leave += new EventHandler(tb_ReportFrom_Leave);
 
-            if (!fromDB) tb_ReportFrom.Text = "Report from...";
-            else if (rpData.tb_ReportFrom_Text != "" && rpData.tb_ReportFrom_Text != null) tb_ReportFrom.Text = rpData.tb_ReportFrom_Text;
-            else tb_ReportFrom.Text = "Report from...";
+            if (!fromDB && mrd.ReportFrom == "") ReportFromText = "Report from...";
+            else if (rpData.tb_ReportFrom_Text != "Report from..." && rpData.tb_ReportFrom_Text != null) ReportFromText = rpData.tb_ReportFrom_Text;
+            else if (mrd.ReportFrom != "") ReportFromText = mrd.ReportFrom;
+            else ReportFromText = "Report from...";
+
+            tb_ReportFrom.Text = ReportFromText;
 
             tb_ReportFrom.MaxLength = 35;
             tb_ReportFrom.Size = controlSize;
@@ -128,9 +155,12 @@ namespace Analyze_alarms.Classes
             tb_ReportBy.Enter += new EventHandler(tb_ReportBy_Enter);
             tb_ReportBy.Leave += new EventHandler(tb_ReportBy_Leave);
 
-            if (!fromDB) tb_ReportBy.Text = "Report done by...";
-            else if (rpData.tb_ReportBy_Text != "" && rpData.tb_ReportBy_Text != null) tb_ReportBy.Text = rpData.tb_ReportBy_Text;
-            else tb_ReportBy.Text = "Report done by...";
+            if (!fromDB && mrd.ReportBy == "") ReportByText = "Report by...";
+            else if (rpData.tb_ReportBy_Text != "Report by..." && rpData.tb_ReportBy_Text != null) ReportByText = rpData.tb_ReportBy_Text;
+            else if (mrd.ReportBy != "") ReportByText = mrd.ReportBy;
+            else ReportByText = "Report by...";
+
+            tb_ReportBy.Text = ReportByText;
 
             tb_ReportBy.Size = controlSize;
             tb_ReportBy.Location = new Point(lbl_ReportBy.Location.X, lbl_ReportBy.Location.Y + lbl_ReportBy.Height);
@@ -149,8 +179,11 @@ namespace Analyze_alarms.Classes
             chk_RowChart.CheckStateChanged += new EventHandler(chk_RowChart_CheckStateChanged);
             chk_RowChart.Text = "Add Row Chart";
 
-            if (!fromDB) chk_RowChart.Checked = true;
-            else chk_RowChart.Checked = rpData.chk_RowChart_Checked;
+            if (!fromDB && mrd.RowChart != false) RowChartChk = true;
+            else if (fromDB) RowChartChk = rpData.chk_RowChart_Checked;
+            else if (mrd != null) RowChartChk = mrd.RowChart;
+            else RowChartChk = true;
+            chk_RowChart.Checked = RowChartChk;
 
             chk_RowChart.AutoSize = true;
             chk_RowChart.Location = new Point(lbl_RowChart.Location.X, lbl_RowChart.Location.Y + lbl_RowChart.Height + 8);
@@ -169,8 +202,12 @@ namespace Analyze_alarms.Classes
             chk_PieChart.CheckStateChanged += new EventHandler(chk_PieChart_CheckStateChanged);
             chk_PieChart.Text = "Add Pie Chart";
 
-            if (!fromDB) chk_PieChart.Checked = true;
-            else chk_PieChart.Checked = rpData.chk_PieChart_Checked;
+            if (!fromDB && mrd.PieChart != false) PieChartChk = true;
+            else if (fromDB) PieChartChk = rpData.chk_PieChart_Checked;
+            else if (mrd != null) PieChartChk = mrd.PieChart;
+            else PieChartChk = true;
+
+            chk_PieChart.Checked = PieChartChk;
 
             chk_PieChart.AutoSize = true;
             chk_PieChart.Location = new Point(chk_RowChart.Location.X + chk_RowChart.Width + 5, chk_RowChart.Location.Y);
@@ -189,8 +226,11 @@ namespace Analyze_alarms.Classes
             chk_Summary.CheckStateChanged += new EventHandler(chk_Summary_CheckStateChanged);
             chk_Summary.Text = "Add summary";
 
-            if (!fromDB) chk_Summary.Checked = true;
-            else chk_Summary.Checked = rpData.chk_Summary_Checked;
+            if (!fromDB && mrd.Summary != false) SummaryChk = true;
+            else if (fromDB) SummaryChk = rpData.chk_Summary_Checked;
+            else if (mrd != null) SummaryChk = mrd.Summary;
+
+            chk_Summary.Checked = SummaryChk;
 
             chk_Summary.AutoSize = true;
             chk_Summary.Location = new Point(lbl_Summary.Location.X, chk_PieChart.Location.Y);
@@ -269,9 +309,12 @@ namespace Analyze_alarms.Classes
             pb_CustomLogo.SizeMode = PictureBoxSizeMode.StretchImage;
             pb_CustomLogo.BorderStyle = BorderStyle.FixedSingle;
 
-            if (!fromDB) pb_CustomLogo.Image = Image.FromFile(System.Environment.CurrentDirectory + "\\logo.png");
-            else if (rpData.customLogoPath != "" && rpData.customLogoPath != null) pb_CustomLogo.Image = Image.FromFile(rpData.customLogoPath);
-            else pb_CustomLogo.Image = Image.FromFile(System.Environment.CurrentDirectory + "\\logo.png");
+            if (!fromDB && mrd.LogoFilePath == "") LogoFilePathText = Environment.CurrentDirectory + "\\logo.png";
+            else if (rpData.customLogoPath != "" && rpData.customLogoPath != null) LogoFilePathText = rpData.customLogoPath;
+            else if (mrd.LogoFilePath != "") LogoFilePathText = mrd.LogoFilePath;
+            else LogoFilePathText = Environment.CurrentDirectory + "\\logo.png";
+
+            pb_CustomLogo.Image = Image.FromFile(LogoFilePathText);
 
             pb_CustomLogo.Size = new Size(50, 30);
             pb_CustomLogo.Location = new Point(btn_AddCustomLogo.Location.X + btn_AddCustomLogo.Width + 10, btn_AddCustomLogo.Location.Y);
@@ -282,9 +325,21 @@ namespace Analyze_alarms.Classes
             btn_GenerateReport.Click += new EventHandler(btn_GenerateReport_Click);
             btn_GenerateReport.Text = "Generate report";
             btn_GenerateReport.Font = new Font(btn_GenerateReport.Font.FontFamily, 18.0f);
-            btn_GenerateReport.Size = new Size(chk_Summary.Location.X + chk_Summary.Width - tb_ReportBy.Location.X, 100);
+            btn_GenerateReport.Size = new Size(chk_Summary.Location.X + chk_Summary.Width - tb_ReportBy.Location.X, 90);
             btn_GenerateReport.Location = new Point(tb_ReportBy.Location.X, btn_AddAttachments.Location.Y + btn_AddAttachments.Height + 15);
             tp_Report.Controls.Add(btn_GenerateReport);
+
+            //Generate save to default checkbox
+            var chk_Default = new CheckBox();
+            chk_Default.CheckStateChanged += new EventHandler(chk_Default_CheckStateChanged);
+            chk_Default.Text = "Save input to default";
+
+            if (!fromDB) chk_Default.Checked = true;
+            else chk_Default.Checked = rpData.chk_Default_Checked;
+
+            chk_Default.AutoSize = true;
+            chk_Default.Location = new Point(btn_GenerateReport.Location.X, btn_GenerateReport.Location.Y + btn_GenerateReport.Height + 5);
+            tp_Report.Controls.Add(chk_Default);
 
             //Generate save dialog    
             saveDialog = new SaveFileDialog();
@@ -301,6 +356,8 @@ namespace Analyze_alarms.Classes
 
             return tp_Report;
         }
+
+
 
         public void AddAttachmentsToReport(ref Classes.ReportGenerator generator)
         {
@@ -371,6 +428,7 @@ namespace Analyze_alarms.Classes
                 {
                     pb.Image = Image.FromFile(openDialog.FileName);
                     rpData.customLogoPath = openDialog.FileName;
+                    LogoFilePathText = openDialog.FileName;
                 }
                 btn.Text = "Default logo";
             }
@@ -379,6 +437,7 @@ namespace Analyze_alarms.Classes
                 pb.Image = Image.FromFile(System.Environment.CurrentDirectory + "\\logo.png");
                 rpData.customLogoPath = "";
                 btn.Text = "Add custom logo";
+                LogoFilePathText = "";
             }
 
         }
@@ -420,6 +479,7 @@ namespace Analyze_alarms.Classes
             TextBox thisTB = (TextBox)sender;
             rpData.tb_ReportFrom_Text = thisTB.Text;
             rpData.tb_ReportFrom_Edited = true;
+            ReportFromText = thisTB.Text;
         }
 
         private void tb_ReportHeader_Enter(object sender, EventArgs e)
@@ -434,6 +494,7 @@ namespace Analyze_alarms.Classes
             TextBox thisTB = (TextBox)sender;
             rpData.tb_Header_Text = thisTB.Text;
             rpData.tb_Header_Edited = true;
+            HeaderText = thisTB.Text;
         }
 
         private void dtp_Report_ValueChanged(object sender, EventArgs e)
@@ -454,6 +515,7 @@ namespace Analyze_alarms.Classes
             TextBox thisTB = (TextBox)sender;
             rpData.tb_ReportBy_Text = thisTB.Text;
             rpData.tb_ReportBy_Edited = true;
+            ReportByText = thisTB.Text;
         }
 
         private void chk_PieChart_CheckStateChanged(object sender, EventArgs e)
@@ -462,7 +524,9 @@ namespace Analyze_alarms.Classes
             if (thisChk.Checked)
                 rpData.chk_PieChart_Checked = true;
             else
-                rpData.chk_PieChart_Checked = false;
+                rpData.chk_PieChart_Checked = false;            
+
+            PieChartChk = thisChk.Checked;
         }
 
         private void chk_RowChart_CheckStateChanged(object sender, EventArgs e)
@@ -472,6 +536,8 @@ namespace Analyze_alarms.Classes
                 rpData.chk_RowChart_Checked = true;
             else
                 rpData.chk_RowChart_Checked = false;
+
+            RowChartChk = thisChk.Checked;
         }
 
         private void chk_Summary_CheckStateChanged(object sender, EventArgs e)
@@ -481,6 +547,17 @@ namespace Analyze_alarms.Classes
                 rpData.chk_Summary_Checked = true;
             else
                 rpData.chk_Summary_Checked = false;
+
+            SummaryChk = thisChk.Checked;
+        }
+
+        private void chk_Default_CheckStateChanged(object sender, EventArgs e)
+        {
+            CheckBox thisChk = (CheckBox)sender;
+            if (thisChk.Checked)
+                rpData.chk_Default_Checked = true;
+            else
+                rpData.chk_Default_Checked = false;
         }
 
         private void tb_Freetext_Enter(object sender, EventArgs e)
@@ -500,8 +577,17 @@ namespace Analyze_alarms.Classes
         private void btn_GenerateReport_Click(object sender, EventArgs e)
         {
             saveDialog.ShowDialog();
-            if(saveDialog.FileName != "")
-                myUC.StartCreatePDFReport(this);            
+            if (saveDialog.FileName != "")
+            {
+                myUC.StartCreatePDFReport(this);
+                if (rpData.chk_Default_Checked)
+                {
+                    mrd = new MyReportDefault(HeaderText, ReportFromText, ReportByText,
+                                              RowChartChk, PieChartChk, SummaryChk,
+                                              LogoFilePathText);
+                    
+                }
+            }
         }
 
         #region IDisposable Support
@@ -513,7 +599,9 @@ namespace Analyze_alarms.Classes
             {
                 if (disposing)
                 {
-                    // TODO: dispose managed state (managed objects).
+                    tp_Report.Dispose();
+                    openDialog.Dispose();
+                    saveDialog.Dispose();
                 }
 
                 // TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
@@ -535,7 +623,7 @@ namespace Analyze_alarms.Classes
             // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
             Dispose(true);
             // TODO: uncomment the following line if the finalizer is overridden above.
-            // GC.SuppressFinalize(this);
+            GC.SuppressFinalize(this);
         }
         #endregion
     }

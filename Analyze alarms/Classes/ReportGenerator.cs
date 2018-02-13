@@ -48,108 +48,109 @@ namespace Analyze_alarms.Classes
         {
             if (savePath != null)
             {
-                var document = new PdfDocument();
-
-                //======================================================================================================================================//
-                //Add page: Front page
-                var firstPage = document.AddPage();
-                firstPage.Size = PageSize;
-                var firstPage_gfx = XGraphics.FromPdfPage(firstPage);
-                GenerateFirstPage(firstPage_gfx);
-                GenerateFooter(firstPage_gfx, PageOrientation.Portrait);
-
-                //======================================================================================================================================//
-                //Add page: Freetext
-                if (parent.myReportFormData.tb_FreeText_Text != "")
+                using (var document = new PdfDocument())
                 {
-                    var freeTextPage = document.AddPage();
-                    freeTextPage.Size = PageSize;
-                    var freeTextPage_gfx = XGraphics.FromPdfPage(freeTextPage);
-                    GenerateFreeTextPage(freeTextPage_gfx);
-                    GenerateFooter(freeTextPage_gfx, PageOrientation.Portrait);
-                }
+                    //======================================================================================================================================//
+                    //Add page: Front page
+                    var firstPage = document.AddPage();
+                    firstPage.Size = PageSize;
+                    var firstPage_gfx = XGraphics.FromPdfPage(firstPage);
+                    GenerateFirstPage(firstPage_gfx);
+                    GenerateFooter(firstPage_gfx, PageOrientation.Portrait);
 
-                //======================================================================================================================================//
-                //Add page: Summary
-                if (parent.myReportFormData.chk_Summary_Checked)
-                {
-                    var summaryPage = document.AddPage();
-                    summaryPage.Size = PageSize;
-                    var summaryPage_gfx = XGraphics.FromPdfPage(summaryPage);
-                    GenerateSummaryPage(summaryPage_gfx, 0);
-                    GenerateFooter(summaryPage_gfx, PageOrientation.Portrait);
-
-                    PdfPage summaryPage2 = new PdfPage();
-                    PdfPage summaryPage3 = new PdfPage();
-
-                    if (parent.mySummary.Count > maxSummaryEntrysPerPage)
+                    //======================================================================================================================================//
+                    //Add page: Freetext
+                    if (parent.myReportFormData.tb_FreeText_Text != "" && parent.myReportFormData.tb_FreeText_Text != null)
                     {
-                        GenerateContinuesLabel(summaryPage_gfx);
-                        summaryPage2 = document.AddPage();
-                        summaryPage2.Size = PageSize;
-                        var summaryPage2_gfx = XGraphics.FromPdfPage(summaryPage2);
-                        GenerateSummaryPage(summaryPage2_gfx, maxSummaryEntrysPerPage);
-                        GenerateFooter(summaryPage2_gfx, PageOrientation.Portrait);
+                        var freeTextPage = document.AddPage();
+                        freeTextPage.Size = PageSize;
+                        var freeTextPage_gfx = XGraphics.FromPdfPage(freeTextPage);
+                        GenerateFreeTextPage(freeTextPage_gfx);
+                        GenerateFooter(freeTextPage_gfx, PageOrientation.Portrait);
+                    }
 
-                        if (parent.mySummary.Count > maxSummaryEntrysPerPage * 2)
+                    //======================================================================================================================================//
+                    //Add page: Summary
+                    if (parent.myReportFormData.chk_Summary_Checked)
+                    {
+                        var summaryPage = document.AddPage();
+                        summaryPage.Size = PageSize;
+                        var summaryPage_gfx = XGraphics.FromPdfPage(summaryPage);
+                        GenerateSummaryPage(summaryPage_gfx, 0);
+                        GenerateFooter(summaryPage_gfx, PageOrientation.Portrait);
+
+                        PdfPage summaryPage2 = new PdfPage();
+                        PdfPage summaryPage3 = new PdfPage();
+
+                        if (parent.mySummary.Count > maxSummaryEntrysPerPage)
                         {
-                            GenerateContinuesLabel(summaryPage2_gfx);
-                            summaryPage3 = document.AddPage();
-                            summaryPage3.Size = PageSize;
-                            var summaryPage3_gfx = XGraphics.FromPdfPage(summaryPage3);
-                            GenerateSummaryPage(summaryPage3_gfx, maxSummaryEntrysPerPage * 2);
-                            GenerateFooter(summaryPage3_gfx, PageOrientation.Portrait);
+                            GenerateContinuesLabel(summaryPage_gfx);
+                            summaryPage2 = document.AddPage();
+                            summaryPage2.Size = PageSize;
+                            var summaryPage2_gfx = XGraphics.FromPdfPage(summaryPage2);
+                            GenerateSummaryPage(summaryPage2_gfx, maxSummaryEntrysPerPage);
+                            GenerateFooter(summaryPage2_gfx, PageOrientation.Portrait);
+
+                            if (parent.mySummary.Count > maxSummaryEntrysPerPage * 2)
+                            {
+                                GenerateContinuesLabel(summaryPage2_gfx);
+                                summaryPage3 = document.AddPage();
+                                summaryPage3.Size = PageSize;
+                                var summaryPage3_gfx = XGraphics.FromPdfPage(summaryPage3);
+                                GenerateSummaryPage(summaryPage3_gfx, maxSummaryEntrysPerPage * 2);
+                                GenerateFooter(summaryPage3_gfx, PageOrientation.Portrait);
+                            }
                         }
                     }
-                }
 
-                //======================================================================================================================================//
-                //Add page: Row chart
-                if (rowChart != null && parent.myReportFormData.chk_RowChart_Checked)
-                {
-                    var rowChartPage = document.AddPage();
-                    rowChartPage.Size = PageSize;
-                    rowChartPage.Orientation = PageOrientation.Landscape;
-                    var rowChartPage_gfx = XGraphics.FromPdfPage(rowChartPage);
-                    GenerateChartPage(rowChartPage_gfx, rowChart);
-                    GenerateFooter(rowChartPage_gfx, PageOrientation.Landscape);
-                }
-
-                //======================================================================================================================================//
-                //Add page: Pie chart
-                if (pieChart != null && parent.myReportFormData.chk_PieChart_Checked)
-                {
-                    var pieChartPage = document.AddPage();
-                    pieChartPage.Size = PageSize;
-                    pieChartPage.Orientation = PageOrientation.Landscape;
-                    var pieChartPage_gfx = XGraphics.FromPdfPage(pieChartPage);
-                    GenerateChartPage(pieChartPage_gfx, pieChart);
-                    GenerateFooter(pieChartPage_gfx, PageOrientation.Landscape);
-                }
-
-                //======================================================================================================================================//
-                //Add page: Attachments
-                if (attachments != null)
-                {
-                    foreach (AttachmentImages i in attachments)
+                    //======================================================================================================================================//
+                    //Add page: Row chart
+                    if (rowChart != null && parent.myReportFormData.chk_RowChart_Checked)
                     {
-                        var attachtmentPage = document.AddPage();
-                        attachtmentPage.Size = PageSize;
-
-                        if (i.orientation) attachtmentPage.Orientation = PageOrientation.Portrait;
-                        else attachtmentPage.Orientation = PageOrientation.Landscape;
-
-                        var attachtmentPage_gfx = XGraphics.FromPdfPage(attachtmentPage);
-                        GenerateAttachmentPage(attachtmentPage_gfx, i.img, attachments.IndexOf(i));
-
-                        if (i.orientation) GenerateFooter(attachtmentPage_gfx, PageOrientation.Portrait);
-                        else GenerateFooter(attachtmentPage_gfx, PageOrientation.Landscape);
-
+                        var rowChartPage = document.AddPage();
+                        rowChartPage.Size = PageSize;
+                        rowChartPage.Orientation = PageOrientation.Landscape;
+                        var rowChartPage_gfx = XGraphics.FromPdfPage(rowChartPage);
+                        GenerateChartPage(rowChartPage_gfx, rowChart);
+                        GenerateFooter(rowChartPage_gfx, PageOrientation.Landscape);
                     }
-                }
 
-                document.Save(savePath);
-                return savePath;
+                    //======================================================================================================================================//
+                    //Add page: Pie chart
+                    if (pieChart != null && parent.myReportFormData.chk_PieChart_Checked)
+                    {
+                        var pieChartPage = document.AddPage();
+                        pieChartPage.Size = PageSize;
+                        pieChartPage.Orientation = PageOrientation.Landscape;
+                        var pieChartPage_gfx = XGraphics.FromPdfPage(pieChartPage);
+                        GenerateChartPage(pieChartPage_gfx, pieChart);
+                        GenerateFooter(pieChartPage_gfx, PageOrientation.Landscape);
+                    }
+
+                    //======================================================================================================================================//
+                    //Add page: Attachments
+                    if (attachments != null)
+                    {
+                        foreach (AttachmentImages i in attachments)
+                        {
+                            var attachtmentPage = document.AddPage();
+                            attachtmentPage.Size = PageSize;
+
+                            if (i.orientation) attachtmentPage.Orientation = PageOrientation.Portrait;
+                            else attachtmentPage.Orientation = PageOrientation.Landscape;
+
+                            var attachtmentPage_gfx = XGraphics.FromPdfPage(attachtmentPage);
+                            GenerateAttachmentPage(attachtmentPage_gfx, i.img, attachments.IndexOf(i));
+
+                            if (i.orientation) GenerateFooter(attachtmentPage_gfx, PageOrientation.Portrait);
+                            else GenerateFooter(attachtmentPage_gfx, PageOrientation.Landscape);
+
+                        }
+                    }
+
+                    document.Save(savePath);
+                    return savePath;
+                }
             }
             return null;
         }

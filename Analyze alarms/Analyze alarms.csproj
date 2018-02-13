@@ -84,7 +84,7 @@
     <GenerateManifests>true</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="LiteDB, Version=4.1.1.0, Culture=neutral, PublicKeyToken=4ee40123013c9f27, processorArchitecture=MSIL">
@@ -133,6 +133,7 @@
     <Compile Include="Classes\Database\DataTableRowClass.cs" />
     <Compile Include="Classes\ImageHandling.cs" />
     <Compile Include="Classes\ImageOrientation.cs" />
+    <Compile Include="Classes\MyReportDefault.cs" />
     <Compile Include="Classes\Project.cs" />
     <Compile Include="Classes\ReportTab.cs" />
     <Compile Include="Classes\Database\ReportFormData.cs" />
@@ -239,7 +240,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="LICENSES.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="logo.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

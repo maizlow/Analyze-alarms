@@ -22,6 +22,7 @@ namespace Analyze_alarms.Classes
         public bool chk_Summary_Checked { get; set; } 
         public string customLogoPath { get; set; }
         public string[] attachmentsFilePaths { get; set; } 
+        public bool chk_Default_Checked { get; set; }
 
         public ReportFormData(){}
 
@@ -36,6 +37,7 @@ namespace Analyze_alarms.Classes
             this.chk_PieChart_Checked = true;
             this.chk_Summary_Checked = true;
             this.customLogoPath = "";
+            this.chk_Default_Checked = true;
         }
         
 

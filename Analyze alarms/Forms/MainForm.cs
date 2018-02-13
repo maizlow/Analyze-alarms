@@ -240,7 +240,7 @@ namespace Analyze_alarms
             AddRecentMenuItems(mru, log);
 
             StreamWriter stringToWrite =
-            new StreamWriter(System.Environment.CurrentDirectory + PathToRecentFile);
+            new StreamWriter(Environment.CurrentDirectory + PathToRecentFile);
             foreach (string item in mru)
             {
                 stringToWrite.WriteLine(item); //write list to stream
@@ -275,15 +275,24 @@ namespace Analyze_alarms
             }
         }
 
-        private void RemoveRecentMenuItem(string filePath, Queue<string> mru)
+        private void RemoveRecentMenuItem(string filePath, Queue<string> mru, bool log)
         {
             mru = new Queue<string>(mru.Where(s => s != filePath));
 
-            string[] lines = File.ReadAllLines(System.Environment.CurrentDirectory + "\\Data\\RecentLogs.txt");
-            string[] newLines = RemoveLineFromFile(lines, filePath);
-            File.WriteAllLines(System.Environment.CurrentDirectory + "\\Data\\RecentLogs.txt", newLines);
+            if (log)
+            {
+                string[] lines = File.ReadAllLines(Environment.CurrentDirectory + "\\RecentLogs.txt");
+                string[] newLines = RemoveLineFromFile(lines, filePath);
+                File.WriteAllLines(Environment.CurrentDirectory + "\\RecentLogs.txt", newLines);
+            }
+            else
+            {
+                string[] lines = File.ReadAllLines(Environment.CurrentDirectory + "\\RecentProjects.txt");
+                string[] newLines = RemoveLineFromFile(lines, filePath);
+                File.WriteAllLines(Environment.CurrentDirectory + "\\RecentProjects.txt", newLines);
+            }
+            AddRecentMenuItems(mru, log);
 
-            AddRecentMenuItems(mru, true);
         }
 
         private string[] RemoveLineFromFile(string[] lines, string removeThis)
@@ -305,10 +314,10 @@ namespace Analyze_alarms
             mru.Clear();
             try
             {
-                if (File.Exists(System.Environment.CurrentDirectory + pathEnd))
+                if (File.Exists(Environment.CurrentDirectory + pathEnd))
                 {
                     //read file stream
-                    StreamReader listToRead = new StreamReader(System.Environment.CurrentDirectory + pathEnd);
+                    StreamReader listToRead = new StreamReader(Environment.CurrentDirectory + pathEnd);
 
                     string line;
 
@@ -592,7 +601,7 @@ namespace Analyze_alarms
                 if (!File.Exists(filePath))
                 {
                     MessageBox.Show("File is not there anymore. Removing it from list.");
-                    RemoveRecentMenuItem(filePath, MRLogsList);
+                    RemoveRecentMenuItem(filePath, MRLogsList, true);
                     return;
                 }
                 if (CheckIfLogIsDuplicate(filePath, null)) return;
@@ -802,7 +811,12 @@ namespace Analyze_alarms
                 {
                     if (File.Exists(filePath))
                         filePathToOpen = filePath;
-                    else return;
+                    else
+                    {
+                        MessageBox.Show("File does not exist any more, removing from list.");
+                        RemoveRecentMenuItem(filePath, MRProjectsList, false);
+                        return;
+                    }
                 }
 
                 string pName = "";
