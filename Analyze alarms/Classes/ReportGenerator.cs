@@ -32,12 +32,13 @@ namespace Analyze_alarms.Classes
         public List<AttachmentImages> attachments;
         private UC_NewLog parent;
         private int maxSummaryEntrysPerPage = 25;
-        public ReportTab reportData;
+        public ReportTab reportTab;
+        private ReportFormData rpData;
 
-        public ReportGenerator(UC_NewLog parent, ReportTab reportData)
+        public ReportGenerator(UC_NewLog parent, ReportTab reportTab)
         {
             this.parent = parent;
-            this.reportData = reportData;
+            this.reportTab = reportTab;
         }
 
         /// <summary>
@@ -60,7 +61,7 @@ namespace Analyze_alarms.Classes
 
                     //======================================================================================================================================//
                     //Add page: Freetext
-                    if (parent.myReportFormData.tb_FreeText_Text != "" && parent.myReportFormData.tb_FreeText_Text != null)
+                    if (reportTab.rpData.tb_FreeText_Text != "" && reportTab.rpData.tb_FreeText_Text != null)
                     {
                         var freeTextPage = document.AddPage();
                         freeTextPage.Size = PageSize;
@@ -71,7 +72,7 @@ namespace Analyze_alarms.Classes
 
                     //======================================================================================================================================//
                     //Add page: Summary
-                    if (parent.myReportFormData.chk_Summary_Checked)
+                    if (reportTab.rpData.chk_Summary_Checked)
                     {
                         var summaryPage = document.AddPage();
                         summaryPage.Size = PageSize;
@@ -105,7 +106,7 @@ namespace Analyze_alarms.Classes
 
                     //======================================================================================================================================//
                     //Add page: Row chart
-                    if (rowChart != null && parent.myReportFormData.chk_RowChart_Checked)
+                    if (rowChart != null && reportTab.rpData.chk_RowChart_Checked)
                     {
                         var rowChartPage = document.AddPage();
                         rowChartPage.Size = PageSize;
@@ -117,7 +118,7 @@ namespace Analyze_alarms.Classes
 
                     //======================================================================================================================================//
                     //Add page: Pie chart
-                    if (pieChart != null && parent.myReportFormData.chk_PieChart_Checked)
+                    if (pieChart != null && reportTab.rpData.chk_PieChart_Checked)
                     {
                         var pieChartPage = document.AddPage();
                         pieChartPage.Size = PageSize;
@@ -194,8 +195,9 @@ namespace Analyze_alarms.Classes
 
             //======================================================================================================================================//
             var font = new XFont("Calibri", 42.0, XFontStyle.Bold);
+
             //Get stringsize width
-            XSize stringSize = gfx.MeasureString(parent.myReportFormData.tb_Header_Text, font);
+            XSize stringSize = gfx.MeasureString(reportTab.rpData.tb_Header_Text, font);
 
             //Get rectangle height dependning on how long the string is. Otherwise the text wont wrap.
             double rectHeight;
@@ -205,7 +207,7 @@ namespace Analyze_alarms.Classes
 
             var rect = new XRect(Margin, LogoRect.Bottom + 150, UsableWidth, rectHeight);
             
-            CreateTextFormatter(gfx, XParagraphAlignment.Center).DrawString(parent.myReportFormData.tb_Header_Text, font, TextBrush, rect, XStringFormats.TopLeft);
+            CreateTextFormatter(gfx, XParagraphAlignment.Center).DrawString(reportTab.rpData.tb_Header_Text, font, TextBrush, rect, XStringFormats.TopLeft);
             
             //======================================================================================================================================//
             //Add Plant: label
@@ -217,9 +219,9 @@ namespace Analyze_alarms.Classes
             //======================================================================================================================================//
             //Add where text
             font = new XFont("Calibri", 22.0, XFontStyle.Bold);
-            stringSize = gfx.MeasureString(parent.myReportFormData.tb_ReportFrom_Text, font);
+            stringSize = gfx.MeasureString(reportTab.rpData.tb_ReportFrom_Text, font);
             rect = new XRect(Margin + rect.Width + 8, rect.Location.Y + 2, stringSize.Width, rectHeight);
-            CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString(parent.myReportFormData.tb_ReportFrom_Text, font, TextBrush, rect, XStringFormats.TopLeft);
+            CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString(reportTab.rpData.tb_ReportFrom_Text, font, TextBrush, rect, XStringFormats.TopLeft);
 
             //======================================================================================================================================//
             //Add By: label
@@ -231,9 +233,9 @@ namespace Analyze_alarms.Classes
             //======================================================================================================================================//
             //Add By: text
             font = new XFont("Calibri", 22.0, XFontStyle.Bold);
-            stringSize = gfx.MeasureString(parent.myReportFormData.tb_ReportBy_Text, font);
+            stringSize = gfx.MeasureString(reportTab.rpData.tb_ReportBy_Text, font);
             rect = new XRect(Margin + rect.Width + 8, rect.Location.Y + 2, stringSize.Width, font.GetHeight());
-            CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString(parent.myReportFormData.tb_ReportBy_Text, font, TextBrush, rect, XStringFormats.TopLeft);
+            CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString(reportTab.rpData.tb_ReportBy_Text, font, TextBrush, rect, XStringFormats.TopLeft);
 
             //Add Date: label
             font = new XFont("Calibri", 24.0, XFontStyle.Bold | XFontStyle.Underline);
@@ -244,9 +246,9 @@ namespace Analyze_alarms.Classes
             //======================================================================================================================================//
             //Add date
             font = new XFont("Calibri", 22.0, XFontStyle.Bold);
-            stringSize = gfx.MeasureString(parent.myReportFormData.tb_ReportBy_Text, font);
+            stringSize = gfx.MeasureString(reportTab.rpData.tb_ReportBy_Text, font);
             rect = new XRect(Margin + rect.Width + 8, rect.Location.Y + 2, stringSize.Width, font.GetHeight());
-            CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString(parent.myReportFormData.dtp_ReportDate.Date.ToShortDateString(), font, TextBrush, rect, XStringFormats.TopLeft);
+            CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString(reportTab.rpData.dtp_ReportDate.Date.ToShortDateString(), font, TextBrush, rect, XStringFormats.TopLeft);
         }
 
         private void GenerateFreeTextPage(XGraphics gfx)
@@ -262,7 +264,7 @@ namespace Analyze_alarms.Classes
             //======================================================================================================================================//
             font = new XFont("Calibri", 11.0, XFontStyle.Bold);
             rect = new XRect(Margin, rect.Location.Y + rect.Height + 5, UsableWidth, PageHeight - rect.Location.Y + rect.Height + 5);
-            CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString(parent.myReportFormData.tb_FreeText_Text, font, TextBrush, rect, XStringFormats.TopLeft);
+            CreateTextFormatter(gfx, XParagraphAlignment.Left).DrawString(reportTab.rpData.tb_FreeText_Text, font, TextBrush, rect, XStringFormats.TopLeft);
         }
 
         private void GenerateSummaryPage(XGraphics gfx, int firstIndex)

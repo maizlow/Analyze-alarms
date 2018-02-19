@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows.Forms;
 using System.Drawing;
 using System.ComponentModel;
+using System.IO;
 
 namespace Analyze_alarms.Classes
 {
@@ -80,12 +81,13 @@ namespace Analyze_alarms.Classes
             tb_ReportHeader.Enter += new EventHandler(tb_ReportHeader_Enter);
             tb_ReportHeader.Leave += new EventHandler(tb_ReportHeader_Leave);
 
-            if (!fromDB && mrd.Header == "") HeaderText = "Report header...";
+            if (!fromDB && string.IsNullOrEmpty(mrd.Header)) HeaderText = "Report header...";
             else if (rpData.tb_Header_Text != "Report header..." && rpData.tb_Header_Text != null) HeaderText = rpData.tb_Header_Text;
             else if (mrd.Header != "") HeaderText = mrd.Header;
             else HeaderText = "Report header...";
 
             tb_ReportHeader.Text = HeaderText;
+            rpData.tb_Header_Text = tb_ReportHeader.Text;
 
             tb_ReportHeader.MaxLength = 35;
             tb_ReportHeader.Size = controlSize;
@@ -132,12 +134,13 @@ namespace Analyze_alarms.Classes
             tb_ReportFrom.Enter += new EventHandler(tb_ReportFrom_Enter);
             tb_ReportFrom.Leave += new EventHandler(tb_ReportFrom_Leave);
 
-            if (!fromDB && mrd.ReportFrom == "") ReportFromText = "Report from...";
+            if (!fromDB && string.IsNullOrEmpty(mrd.ReportFrom)) ReportFromText = "Report from...";
             else if (rpData.tb_ReportFrom_Text != "Report from..." && rpData.tb_ReportFrom_Text != null) ReportFromText = rpData.tb_ReportFrom_Text;
             else if (mrd.ReportFrom != "") ReportFromText = mrd.ReportFrom;
             else ReportFromText = "Report from...";
 
             tb_ReportFrom.Text = ReportFromText;
+            rpData.tb_ReportFrom_Text = tb_ReportFrom.Text;
 
             tb_ReportFrom.MaxLength = 35;
             tb_ReportFrom.Size = controlSize;
@@ -158,12 +161,13 @@ namespace Analyze_alarms.Classes
             tb_ReportBy.Enter += new EventHandler(tb_ReportBy_Enter);
             tb_ReportBy.Leave += new EventHandler(tb_ReportBy_Leave);
 
-            if (!fromDB && mrd.ReportBy == "") ReportByText = "Report by...";
+            if (!fromDB && string.IsNullOrEmpty(mrd.ReportBy)) ReportByText = "Report by...";
             else if (rpData.tb_ReportBy_Text != "Report by..." && rpData.tb_ReportBy_Text != null) ReportByText = rpData.tb_ReportBy_Text;
             else if (mrd.ReportBy != "") ReportByText = mrd.ReportBy;
             else ReportByText = "Report by...";
 
             tb_ReportBy.Text = ReportByText;
+            rpData.tb_ReportBy_Text = tb_ReportBy.Text;
 
             tb_ReportBy.Size = controlSize;
             tb_ReportBy.Location = new Point(lbl_ReportBy.Location.X, lbl_ReportBy.Location.Y + lbl_ReportBy.Height);
@@ -187,6 +191,7 @@ namespace Analyze_alarms.Classes
             else if (mrd != null) RowChartChk = mrd.RowChart;
             else RowChartChk = true;
             chk_RowChart.Checked = RowChartChk;
+            rpData.chk_RowChart_Checked = RowChartChk;
 
             chk_RowChart.AutoSize = true;
             chk_RowChart.Location = new Point(lbl_RowChart.Location.X, lbl_RowChart.Location.Y + lbl_RowChart.Height + 8);
@@ -211,6 +216,7 @@ namespace Analyze_alarms.Classes
             else PieChartChk = true;
 
             chk_PieChart.Checked = PieChartChk;
+            rpData.chk_PieChart_Checked = PieChartChk;
 
             chk_PieChart.AutoSize = true;
             chk_PieChart.Location = new Point(chk_RowChart.Location.X + chk_RowChart.Width + 5, chk_RowChart.Location.Y);
@@ -234,6 +240,7 @@ namespace Analyze_alarms.Classes
             else if (mrd != null) SummaryChk = mrd.Summary;
 
             chk_Summary.Checked = SummaryChk;
+            rpData.chk_Summary_Checked = SummaryChk;
 
             chk_Summary.AutoSize = true;
             chk_Summary.Location = new Point(lbl_Summary.Location.X, chk_PieChart.Location.Y);
@@ -254,6 +261,7 @@ namespace Analyze_alarms.Classes
 
             if (!fromDB) tb_Freetext.Text = "";
             else tb_Freetext.Text = rpData.tb_FreeText_Text;
+            rpData.tb_FreeText_Text = tb_Freetext.Text;
 
             tb_Freetext.Multiline = true;
             tb_Freetext.Location = new Point(lbl_FreeText.Location.X, dtp_Report.Location.Y);
@@ -312,7 +320,7 @@ namespace Analyze_alarms.Classes
             pb_CustomLogo.SizeMode = PictureBoxSizeMode.StretchImage;
             pb_CustomLogo.BorderStyle = BorderStyle.FixedSingle;
 
-            if (!fromDB && mrd.LogoFilePath == "") LogoFilePathText = folderPath + "\\logo.png";
+            if (!fromDB && string.IsNullOrEmpty(mrd.LogoFilePath)) LogoFilePathText = folderPath + "\\logo.png";
             else if (rpData.customLogoPath != "" && rpData.customLogoPath != null) LogoFilePathText = rpData.customLogoPath;
             else if (mrd.LogoFilePath != "") LogoFilePathText = mrd.LogoFilePath;
             else LogoFilePathText = folderPath + "\\logo.png";
@@ -374,35 +382,39 @@ namespace Analyze_alarms.Classes
 
                 foreach (string path in rpData.attachmentsFilePaths)
                 {
-                    Classes.AttachmentImages img = new Classes.AttachmentImages();
-                    Bitmap bmp = new Bitmap(path);
-                    Image image;
-
-                    Classes.ImageHelper imgOrient = new Classes.ImageHelper();
-                    image = imgOrient.RotateImageByExifOrientationData((Image)bmp);
-
-                    if (image.Width >= image.Height)
+                    if (File.Exists(path))
                     {
-                        img.orientation = false;
-                        new_width = 900;
-                        aspect_ratio = (double)bmp.Height / (double)bmp.Width;
-                        new_height = aspect_ratio * (double)new_width;
+
+                        Classes.AttachmentImages img = new Classes.AttachmentImages();
+                        Bitmap bmp = new Bitmap(path);
+                        Image image;
+
+                        Classes.ImageHelper imgOrient = new Classes.ImageHelper();
+                        image = imgOrient.RotateImageByExifOrientationData((Image)bmp);
+
+                        if (image.Width >= image.Height)
+                        {
+                            img.orientation = false;
+                            new_width = 900;
+                            aspect_ratio = (double)bmp.Height / (double)bmp.Width;
+                            new_height = aspect_ratio * (double)new_width;
+                        }
+                        else
+                        {
+                            img.orientation = true;
+                            new_width = 480;
+                            aspect_ratio = (double)bmp.Height / (double)bmp.Width;
+                            new_height = aspect_ratio * (double)new_width;
+                        }
+
+                        //Only resize too big images
+                        if ((img.orientation == false && image.Width > 1024) | (img.orientation && image.Height > 480))
+                            image = ImageHandling.ResizeImage(image, new_width, (int)new_height);
+
+                        img.img = image;
+
+                        generator.attachments.Add(img);
                     }
-                    else
-                    {
-                        img.orientation = true;
-                        new_width = 480;
-                        aspect_ratio = (double)bmp.Height / (double)bmp.Width;
-                        new_height = aspect_ratio * (double)new_width;
-                    }
-
-                    //Only resize too big images
-                    if ((img.orientation == false && image.Width > 1024) | (img.orientation && image.Height > 480))
-                        image = ImageHandling.ResizeImage(image, new_width, (int)new_height);
-
-                    img.img = image;
-
-                    generator.attachments.Add(img);
                 }
             }
         }

@@ -39,7 +39,7 @@ namespace Analyze_alarms
             set
             {
                 paintFormCompleted = value;
-                paintChartFormDone(ref generator, ref generator.reportData);
+                paintChartFormDone(ref generator, ref generator.reportTab);
             }
 
         }
@@ -544,12 +544,25 @@ namespace Analyze_alarms
                 Control c = myCharts.CreateRowChart(mySummary);
                 tp_Diagram.Controls.Add(c);
             }
+            else
+            {
+                tp_Diagram.Controls.RemoveByKey("rowControl");
+                Control c = myCharts.CreateRowChart(mySummary);
+                tp_Diagram.Controls.Add(c);
+            }
             //Pie chart
             if (!tp_Diagram.Controls.ContainsKey("pieControl"))
             {
                 Control c = myCharts.CreatePieChart(mySummary);
                 tp_Diagram.Controls.Add(c);
             }
+            else
+            {
+                tp_Diagram.Controls.RemoveByKey("pieControl");
+                Control c = myCharts.CreatePieChart(mySummary);
+                tp_Diagram.Controls.Add(c);
+            }
+
             //Scatter chart
             //if (!tp_Diagram.Controls.ContainsKey("scatterControl"))
             //{
@@ -648,7 +661,7 @@ namespace Analyze_alarms
 
         private void GenerateReport(ref Classes.ReportTab rd)
         {
-            if (rd.saveReportFilePath != null)
+            if (rd.saveReportFilePath != null && myReportFormData != null)
             {
                 var filepath = generator.Generate(rd.saveReportFilePath);
                 Process.Start(filepath);                
@@ -764,7 +777,7 @@ namespace Analyze_alarms
         private void btn_Analyze_Click(object sender, EventArgs e)
         {
             Cursor = Cursors.WaitCursor;
-
+            
             mySummary.Clear();
             runTime = TimeSpan.Zero;
             AnalyzeLogFile();

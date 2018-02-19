@@ -10,7 +10,7 @@ namespace Analyze_alarms.Classes
 {
     public class MyReportDefault
     {
-        private const string path = "\\ReportDefault.xml";
+        private const string path = "\\LocalData\\ReportDefault.xml";
 
         public string Header { get; set; }
         public string ReportFrom { get; set; }
@@ -56,6 +56,13 @@ namespace Analyze_alarms.Classes
 
         public void UpdateXMLFile()
         {
+            if (string.IsNullOrEmpty(Header) ||
+                string.IsNullOrEmpty(ReportFrom) ||
+                string.IsNullOrEmpty(ReportBy) ||
+                string.IsNullOrEmpty(LogoFilePath))
+                return;
+
+
             XDocument doc = new XDocument(new XDeclaration("1.0", "utf-8", "true"), 
                 new XElement("ReportDefault",
                     new XAttribute("Header", Header),

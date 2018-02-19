@@ -27,7 +27,7 @@ namespace Analyze_alarms
         const int MRUnumber = 6;
         Queue<string> MRLogsList = new Queue<string>();
         Queue<string> MRProjectsList = new Queue<string>();
-        const string logSettingsFileName = "\\logsettings.xml";
+        const string logSettingsFileName = "\\LocalData\\logsettings.xml";
         private string folderPath;
 
         public static List<LogSettings> logSettings;
@@ -737,6 +737,17 @@ namespace Analyze_alarms
                     reportFormData = db.LoadReportData(projectName + "_rData_" + uc.Name);
                     dataTableRowsList = db.LoadDataTablesData(projectName + "_dTable_" + uc.Name);
                     analyzedRows = db.LoadAnalyzedRowsData(projectName + "_aRows_" + uc.Name);
+
+                    if (reportFormData.attachmentsFilePaths != null)
+                    {
+                        foreach (string s in reportFormData.attachmentsFilePaths)
+                        {
+                            if (!File.Exists(s))
+                            {
+                                reportFormData.attachmentsFilePaths = null;
+                            }
+                        }
+                    }
 
                     //Populate Usercontrols data
                     PopulateUCData(uc, summary, reportFormData, dataTableRowsList, analyzedRows);
