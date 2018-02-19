@@ -1015,7 +1015,6 @@ namespace Analyze_alarms
             Forms.About frm = new Forms.About();
             frm.Show();
         }
-        #endregion
 
         private void fileTabControl_MouseDoubleClick(object sender, MouseEventArgs e)
         {
@@ -1076,6 +1075,11 @@ namespace Analyze_alarms
 
                                 if (!string.IsNullOrEmpty(path))
                                 {
+                                    if (File.Exists(path + newFileName + ".csv"))
+                                    {
+                                        MessageBox.Show("Filename allready exists.");
+                                        return;
+                                    }
                                     System.IO.File.Move(oldFileName, path + newFileName + ".csv");
                                     tp.Text = newFileName;
                                     openedFiles[fileTabControl.SelectedIndex - 1] = path + newFileName + ".csv";
@@ -1090,5 +1094,6 @@ namespace Analyze_alarms
                 }
             }
         }
+        #endregion
     }
 }
