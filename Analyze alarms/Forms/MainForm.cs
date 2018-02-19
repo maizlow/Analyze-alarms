@@ -13,6 +13,8 @@ using System.Linq;
 using System.Xml.Linq;
 using System.Configuration;
 using Analyze_alarms.Classes;
+using System.Reflection;
+using Analyze_alarms.Forms;
 
 namespace Analyze_alarms
 {
@@ -697,16 +699,26 @@ namespace Analyze_alarms
             }
         }
 
-        private void SaveToDB(string projectName)
+        private bool SaveToDB(string projectName)
         {
             Classes.DataBase db = new Classes.DataBase();
             foreach (UC_NewLog uc in myUCs)
             {
-                db.SaveSummaryData(uc.mySummary, projectName + "_sData_" + uc.Name);
-                db.SaveReportData(uc.myReportFormData, projectName + "_rData_" + uc.Name);
-                db.SaveDataTable(uc.myDataTableRowsList, projectName + "_dTable_" + uc.Name);
-                db.SaveAnalyzedRows(uc.analyzedRows, projectName + "_aRows_" + uc.Name);
+                if (db.CheckCollectionName(uc.Name))
+                {
+                    db.SaveSummaryData(uc.mySummary, projectName + "_sData_" + uc.Name);
+                    db.SaveReportData(uc.myReportFormData, projectName + "_rData_" + uc.Name);
+                    db.SaveDataTable(uc.myDataTableRowsList, projectName + "_dTable_" + uc.Name);
+                    db.SaveAnalyzedRows(uc.analyzedRows, projectName + "_aRows_" + uc.Name);
+                }
+                else
+                {
+                    MessageBox.Show("The collection name contains illegal characters. Double-click the tab to change the name.");
+                    return false;
+                }
             }
+
+            return true;
         }
 
         private void ReadFromDB(string projectName)
@@ -776,13 +788,20 @@ namespace Analyze_alarms
                 }
             }
 
-            CreateProjectFile(savePath, myUCs.Count, slist);
-            SaveToDB(openedProjectData.ProjectName.Replace('.', '_').Replace(' ', '_'));
+            string name = Path.GetFileName(savePath);
+            if (SaveToDB(name.Replace('.', '_').Replace(' ', '_')))
+            {
+                CreateProjectFile(savePath, myUCs.Count, slist);
 
-            SetProjectNameInWindow(openedProjectData.ProjectName);
-            toolStripStatusLabel1.Text = "Project saved.";
-            saveToolStripMenuItem.Enabled = true;
-            openedProjectData.isSaved = true;
+                SetProjectNameInWindow(openedProjectData.ProjectName);
+                toolStripStatusLabel1.Text = "Project saved.";
+                saveToolStripMenuItem.Enabled = true;
+                openedProjectData.isSaved = true;
+            }
+            else
+            {
+
+            }
         }
 
         private void OpenProject(string filePath = "")
@@ -998,5 +1017,78 @@ namespace Analyze_alarms
         }
         #endregion
 
+        private void fileTabControl_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            TabControl tc = sender as TabControl;
+            if (tc != null)
+            {
+                for (int i = 0; i < tc.TabCount; ++i)
+                {
+                    if (tc.GetTabRect(i).Contains(e.Location))
+                    {
+                        TabPage tp = tc.TabPages[i];
+                        MethodInfo onDoubleClick = tp.GetType().GetMethod("OnDoubleClick", BindingFlags.NonPublic | BindingFlags.Instance);
+                        onDoubleClick.Invoke(tp, new object[] { null });
+
+                        if (tp.Text == "Start") return;
+
+                        string newFileName = string.Empty;
+                        FileNameInputBox inputBox = new FileNameInputBox();
+                        if (inputBox.InputBox(
+                            "Modify log name", 
+                            "Enter a new filename for the logfile. Banned characters: - ( ) [ ] @ . , * etc.",
+                            ref newFileName) == DialogResult.OK)
+                        {
+                            if (!string.IsNullOrEmpty(newFileName))
+                            {
+                                for (var j = 0; j < newFileName.Length; j++)
+                                {
+                                    var c = newFileName[j];
+
+                                    if (char.IsLetterOrDigit(c) || c == '_' || (c == '$' && j == 0))
+                                    {
+                                        continue;
+                                    }
+                                    else if (c == '-' && j > 0)
+                                    {
+                                        continue;
+                                    }
+                                    else
+                                    {
+                                        MessageBox.Show("Invalid characters found. Try again.");
+                                        return;
+                                    }
+                                }
+                            }
+                            string oldFileName = openedFiles[fileTabControl.SelectedIndex - 1];
+                            string path = string.Empty;
+                            if (!string.IsNullOrEmpty(oldFileName))
+                            {
+                                for (int y = oldFileName.Length; y > 0; y--)
+                                {
+                                    var c = oldFileName[y-1];
+                                    if (c == '\\')
+                                    {
+                                        path = oldFileName.Remove(y);
+                                        break;
+                                    }
+                                }
+
+                                if (!string.IsNullOrEmpty(path))
+                                {
+                                    System.IO.File.Move(oldFileName, path + newFileName + ".csv");
+                                    tp.Text = newFileName;
+                                    openedFiles[fileTabControl.SelectedIndex - 1] = path + newFileName + ".csv";
+                                    myUCs[fileTabControl.SelectedIndex - 1].Name = newFileName;
+                                }
+                            }
+                            else return;
+                        }
+
+                        break;
+                    }
+                }
+            }
+        }
     }
 }

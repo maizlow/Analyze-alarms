@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
-using System.Text;
 using LiteDB;
 
 namespace Analyze_alarms.Classes
@@ -10,7 +8,8 @@ namespace Analyze_alarms.Classes
     public class DataBase
     {
         private string dbPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + "\\localdb.db";
-        
+
+
         #region SAVE
         public void SaveDataTable(List<DataTableRowClass> data, string colName)
         {
@@ -59,6 +58,11 @@ namespace Analyze_alarms.Classes
             else return null;
         }
 
+        /// <summary>
+        /// Loads and returns a list of all analyzed rows.
+        /// </summary>
+        /// <param name="colName"></param>
+        /// <returns></returns>
         public List<AnalyzedRows> LoadAnalyzedRowsData(string colName)
         {
             if (CheckIfCollectionExists(colName))
@@ -92,8 +96,40 @@ namespace Analyze_alarms.Classes
 
         #endregion
 
-        #region Private functions
+        #region Public functions
+        /// <summary>
+        /// Verify that we can save a collection with this name.
+        /// </summary>
+        /// <param name="colName"></param>
+        /// <returns></returns>
+        public bool CheckCollectionName(string colName)
+        {
+            if (string.IsNullOrEmpty(colName)) return false;
 
+            // do not use regex because is too slow
+            for (var i = 0; i < colName.Length; i++)
+            {
+                var c = colName[i];
+
+                if (char.IsLetterOrDigit(c) || c == '_' || (c == '$' && i == 0))
+                {
+                    continue;
+                }
+                else if (c == '-' && i > 0)
+                {
+                    continue;
+                }
+                else
+                {                    
+                    return false;
+                }
+            }
+
+            return true;
+        }
+        #endregion
+        
+        #region Private functions
         /// <summary>
         /// Check database for an existing document
         /// </summary>
@@ -106,8 +142,7 @@ namespace Analyze_alarms.Classes
                 return db.CollectionExists(colName);
             }            
         }
-
-
+        
         /// <summary>
         /// Updates an existing documents entrys
         /// </summary>
