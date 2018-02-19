@@ -7,7 +7,7 @@ namespace Analyze_alarms.Classes
 {
     public class DataBase
     {
-        private string dbPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + "\\LocalData\\localdb.db";
+        public  string dbPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + "\\LocalData\\localdb.db";
 
 
         #region SAVE

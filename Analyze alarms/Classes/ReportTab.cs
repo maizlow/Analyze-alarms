@@ -446,6 +446,8 @@ namespace Analyze_alarms.Classes
                     rpData.customLogoPath = openDialog.FileName;
                     LogoFilePathText = openDialog.FileName;
                 }
+                else return;
+
                 btn.Text = "Default logo";
             }
             else

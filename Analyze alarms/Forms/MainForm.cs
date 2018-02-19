@@ -494,6 +494,11 @@ namespace Analyze_alarms
                                                           new XAttribute("shiftActive", "0"))
                                                           ));
 
+                if (!Directory.Exists(folderPath + "//LocalData"))
+                {
+                    DirectoryInfo di = Directory.CreateDirectory(folderPath + "\\LocalData");
+                }
+
                 doc.Save(folderPath + logSettingsFileName);
                 LoadLogSettingsFromFile();
             }
@@ -724,33 +729,37 @@ namespace Analyze_alarms
         private void ReadFromDB(string projectName)
         {
             Classes.DataBase db = new Classes.DataBase();
-            if (myUCs != null && myUCs.Count > 0)
+
+            if (File.Exists(db.dbPath))
             {
-                List<Summary> summary = new List<Summary>();
-                ReportFormData reportFormData = new ReportFormData();
-                List<DataTableRowClass> dataTableRowsList = new List<DataTableRowClass>();
-                List<AnalyzedRows> analyzedRows = new List<AnalyzedRows>();
-
-                foreach (UC_NewLog uc in myUCs)
+                if (myUCs != null && myUCs.Count > 0)
                 {
-                    summary = db.LoadSummaryData(projectName + "_sData_" + uc.Name);
-                    reportFormData = db.LoadReportData(projectName + "_rData_" + uc.Name);
-                    dataTableRowsList = db.LoadDataTablesData(projectName + "_dTable_" + uc.Name);
-                    analyzedRows = db.LoadAnalyzedRowsData(projectName + "_aRows_" + uc.Name);
+                    List<Summary> summary = new List<Summary>();
+                    ReportFormData reportFormData = new ReportFormData();
+                    List<DataTableRowClass> dataTableRowsList = new List<DataTableRowClass>();
+                    List<AnalyzedRows> analyzedRows = new List<AnalyzedRows>();
 
-                    if (reportFormData.attachmentsFilePaths != null)
+                    foreach (UC_NewLog uc in myUCs)
                     {
-                        foreach (string s in reportFormData.attachmentsFilePaths)
+                        summary = db.LoadSummaryData(projectName + "_sData_" + uc.Name);
+                        reportFormData = db.LoadReportData(projectName + "_rData_" + uc.Name);
+                        dataTableRowsList = db.LoadDataTablesData(projectName + "_dTable_" + uc.Name);
+                        analyzedRows = db.LoadAnalyzedRowsData(projectName + "_aRows_" + uc.Name);
+
+                        if (reportFormData.attachmentsFilePaths != null)
                         {
-                            if (!File.Exists(s))
+                            foreach (string s in reportFormData.attachmentsFilePaths)
                             {
-                                reportFormData.attachmentsFilePaths = null;
+                                if (!File.Exists(s))
+                                {
+                                    reportFormData.attachmentsFilePaths = null;
+                                }
                             }
                         }
-                    }
 
-                    //Populate Usercontrols data
-                    PopulateUCData(uc, summary, reportFormData, dataTableRowsList, analyzedRows);
+                        //Populate Usercontrols data
+                        PopulateUCData(uc, summary, reportFormData, dataTableRowsList, analyzedRows);
+                    }
                 }
             }
         }
@@ -780,6 +789,7 @@ namespace Analyze_alarms
                         return;
                     }
                 }
+                else return;
             }
             else
             {
@@ -961,6 +971,8 @@ namespace Analyze_alarms
 
         private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (myUCs == null) return;
+
             if (myUCs.Count == 0)
             {
                 MessageBox.Show("Nothing to save yet.");
