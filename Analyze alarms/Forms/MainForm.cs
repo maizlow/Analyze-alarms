@@ -27,8 +27,8 @@ namespace Analyze_alarms
         const int MRUnumber = 6;
         Queue<string> MRLogsList = new Queue<string>();
         Queue<string> MRProjectsList = new Queue<string>();
-        const string logSettingsFileName = "\\LocalData\\logsettings.xml";
-        private string folderPath;
+        const string logSettingsFileName = "\\logsettings.xml";
+        private string installPath, appdataPath;
 
         public static List<LogSettings> logSettings;
 
@@ -243,7 +243,7 @@ namespace Analyze_alarms
             AddRecentMenuItems(mru, log);
 
             StreamWriter stringToWrite =
-            new StreamWriter(folderPath + PathToRecentFile);
+            new StreamWriter(appdataPath + PathToRecentFile);
             foreach (string item in mru)
             {
                 stringToWrite.WriteLine(item); //write list to stream
@@ -284,15 +284,15 @@ namespace Analyze_alarms
 
             if (log)
             {
-                string[] lines = File.ReadAllLines(folderPath + "\\RecentLogs.txt");
+                string[] lines = File.ReadAllLines(appdataPath + "\\RecentLogs.txt");
                 string[] newLines = RemoveLineFromFile(lines, filePath);
-                File.WriteAllLines(folderPath + "\\RecentLogs.txt", newLines);
+                File.WriteAllLines(appdataPath + "\\RecentLogs.txt", newLines);
             }
             else
             {
-                string[] lines = File.ReadAllLines(folderPath + "\\RecentProjects.txt");
+                string[] lines = File.ReadAllLines(appdataPath + "\\RecentProjects.txt");
                 string[] newLines = RemoveLineFromFile(lines, filePath);
-                File.WriteAllLines(folderPath + "\\RecentProjects.txt", newLines);
+                File.WriteAllLines(appdataPath + "\\RecentProjects.txt", newLines);
             }
             AddRecentMenuItems(mru, log);
 
@@ -317,10 +317,10 @@ namespace Analyze_alarms
             mru.Clear();
             try
             {
-                if (File.Exists(folderPath + pathEnd))
+                if (File.Exists(appdataPath + pathEnd))
                 {
                     //read file stream
-                    StreamReader listToRead = new StreamReader(folderPath + pathEnd);
+                    StreamReader listToRead = new StreamReader(appdataPath + pathEnd);
 
                     string line;
 
@@ -494,12 +494,15 @@ namespace Analyze_alarms
                                                           new XAttribute("shiftActive", "0"))
                                                           ));
 
-                if (!Directory.Exists(folderPath + "//LocalData"))
+
+                var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                string Path = directory + "\\ABECE";
+                if (!Directory.Exists(Path))
                 {
-                    DirectoryInfo di = Directory.CreateDirectory(folderPath + "\\LocalData");
+                    Directory.CreateDirectory(Path);
                 }
 
-                doc.Save(folderPath + logSettingsFileName);
+                doc.Save(Path + logSettingsFileName);
                 LoadLogSettingsFromFile();
             }
             catch(Exception ex)
@@ -529,20 +532,20 @@ namespace Analyze_alarms
                 doc.Element("classes").Add(newElement);
             }
 
-            doc.Save(folderPath + logSettingsFileName);
+            doc.Save(appdataPath + logSettingsFileName);
 
 
         }
 
         private void LoadLogSettingsFromFile()
         {
-            if (!File.Exists(folderPath + logSettingsFileName)) CreateStandardSettingsXML();
+            if (!File.Exists(appdataPath + logSettingsFileName)) CreateStandardSettingsXML();
             else
             {
                 try
                 {
                     logSettings = new List<LogSettings>();
-                    foreach (XElement item in XElement.Load(folderPath + logSettingsFileName).Elements("class"))
+                    foreach (XElement item in XElement.Load(appdataPath + logSettingsFileName).Elements("class"))
                     {
                         logSettings.Add(new LogSettings()
                         {
@@ -922,12 +925,21 @@ namespace Analyze_alarms
         #region Events
         private void Form1_Load(object sender, EventArgs e)
         {
-            folderPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
-            this.Icon = new Icon(folderPath + "\\logo.ico");
+            installPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
+            this.Icon = new Icon(installPath + "\\logo.ico");
+
+            var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            appdataPath = directory + "\\ABECE";
+            if (!Directory.Exists(appdataPath))
+            {
+                Directory.CreateDirectory(appdataPath);
+            }
+
+
             LoadRecentMRUList("\\RecentLogs.txt", MRLogsList, true);
             LoadRecentMRUList("\\RecentProjects.txt", MRProjectsList, false);
             LoadLogSettingsFromFile();
-            pictureBox1.Image = Image.FromFile(folderPath + "\\logo.png");
+            pictureBox1.Image = Image.FromFile(installPath + "\\logo.png");
         }
 
         private void isSaved_Valuechanged(object sender, PropertyChangedEventArgs e)
@@ -1057,8 +1069,8 @@ namespace Analyze_alarms
                         string newFileName = string.Empty;
                         FileNameInputBox inputBox = new FileNameInputBox();
                         if (inputBox.InputBox(
-                            "Modify log name", 
-                            "Enter a new filename for the logfile. Banned characters: - ( ) [ ] @ . , * etc.",
+                            "Modify log name",
+                            "Enter a new filename for the logfile. Banned characters: - ( ) [ ] @ . , * etc.\r\nBe aware that this will owerwrite existing file.",
                             ref newFileName) == DialogResult.OK)
                         {
                             if (!string.IsNullOrEmpty(newFileName))

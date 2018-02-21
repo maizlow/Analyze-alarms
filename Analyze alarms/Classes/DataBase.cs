@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using LiteDB;
 
@@ -7,8 +8,18 @@ namespace Analyze_alarms.Classes
 {
     public class DataBase
     {
-        public  string dbPath = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location) + "\\LocalData\\localdb.db";
+        public string dbPath;
 
+
+        public DataBase()
+        {
+            var directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            dbPath = directory + "\\ABECE\\localdb.db";
+            if (!Directory.Exists(directory + "\\ABECE"))
+            {
+                Directory.CreateDirectory(directory + "\\ABECE");
+            }
+        }
 
         #region SAVE
         public void SaveDataTable(List<DataTableRowClass> data, string colName)

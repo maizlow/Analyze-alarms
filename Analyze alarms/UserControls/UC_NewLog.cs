@@ -294,16 +294,35 @@ namespace Analyze_alarms
                                     y++;
                                 }
 
+                                //Always assume Unknown
+                                StopCauseMsgNumber = 9999;
+                                StopCauseMsgText = "Unknown cause";
+
+                                int stopCauseRow = 0;
                                 //Check if lastStopRow is of Production running class
-                                //Then it needs to be treated as an unknown stop and but the time on "Unknown"
+                                //Then it needs to be treated as an unknown stop and put the time on "Unknown"
                                 if (Convert.ToInt16(data.Rows[lastStopRow].ItemArray[3]) == ProdRunning_LB[0])
                                 {
-                                    StopCauseMsgNumber = 9999;
-                                    StopCauseMsgText = "Unknown cause";
+                                    //Check vs. settings
+                                    foreach (LogSettings ls in MainForm.logSettings)
+                                    {
+                                        //Direct stop class
+                                        if (ls.classType == 2)
+                                        {
+                                            if (ls.classNr == Convert.ToInt16(data.Rows[lastStopRow + 2].ItemArray[3]))
+                                            {
+                                                StopCauseMsgNumber = Convert.ToInt16(data.Rows[lastStopRow + 2].ItemArray[4]); ;
+                                                StopCauseMsgText = data.Rows[lastStopRow + 2].ItemArray[6].ToString();
+                                                stopCauseRow = lastStopRow + 2;
+                                                break;
+                                            }
+                                        }
+                                    }
+
+
                                 }
                                 else
                                 {
-                                    int stopCauseRow = 0;
                                     //Itirate between the potential stop rows
                                     for (int i = firstStopRow; i <= lastStopRow; i++)
                                     {
@@ -345,6 +364,7 @@ namespace Analyze_alarms
 
                                             if (indirectStopFound)
                                             {
+                                                indirectStopFound = false;
                                                 bool found = false;
                                                 for (int c = lastStopRow; c > 0; c--)
                                                 {
@@ -374,18 +394,23 @@ namespace Analyze_alarms
                                                 }
                                             }
                                             //Exit internal for-loop when found a match
-                                            if (StopCauseMsgNumber > 0)
+                                            if (StopCauseMsgNumber > 0 && StopCauseMsgNumber != 9999 || (StopCauseMsgNumber == 9999 && i == lastStopRow))
                                                 break;
                                         }
                                     }
+                                }
 
-
+                                if (StopCauseMsgNumber > 0 && StopCauseMsgNumber != 9999)
+                                { 
                                     ColorDGVRow(stopCauseRow, Color.Yellow, dataGridView1);
                                     analyzedRows.Add(new AnalyzedRows(stopCauseRow, Color.Yellow));
                                 }
 
                                 if (StopCauseMsgNumber > 0)
                                 {
+                                    //Debug
+                                    //if (StopCauseMsgNumber == 9999)
+                                    //    Debug.WriteLine(lastStopRow.ToString());
                                     //Record stopcause in summary
                                     Summary sum = CheckIfEntryExist(StopCauseMsgNumber);
                                     if (sum == null)
@@ -706,7 +731,7 @@ namespace Analyze_alarms
 
         //TODO: DEGUG ONLY
         private void dataGridView1_RowPostPaint(object sender, DataGridViewRowPostPaintEventArgs e)
-        {            
+        {
             //var grid = sender as DataGridView;
             //var rowIdx = (e.RowIndex).ToString();
 

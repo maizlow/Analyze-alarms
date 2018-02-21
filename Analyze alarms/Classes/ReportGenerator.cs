@@ -8,6 +8,8 @@ using PdfSharp.Drawing;
 using PdfSharp.Drawing.Layout;
 using PdfSharp.Pdf;
 using PdfSharp.Pdf.IO;
+using System.IO;
+using System.Windows;
 
 namespace Analyze_alarms.Classes
 {
@@ -33,7 +35,6 @@ namespace Analyze_alarms.Classes
         private UC_NewLog parent;
         private int maxSummaryEntrysPerPage = 25;
         public ReportTab reportTab;
-        private ReportFormData rpData;
 
         public ReportGenerator(UC_NewLog parent, ReportTab reportTab)
         {
@@ -148,8 +149,14 @@ namespace Analyze_alarms.Classes
 
                         }
                     }
-
-                    document.Save(savePath);
+                    try
+                    {
+                        document.Save(savePath);
+                    }
+                    catch(IOException)
+                    {
+                        MessageBox.Show("File is being used by another process. Close it and try again.");
+                    }
                     return savePath;
                 }
             }
@@ -288,11 +295,11 @@ namespace Analyze_alarms.Classes
             Rectangle[] rects =
                 {
                     //msgTextRect
-                    new Rectangle(new Point(startX, startY), new Size(bigBoxW, rectHeight)),
+                    new Rectangle(new System.Drawing.Point(startX, startY), new System.Drawing.Size(bigBoxW, rectHeight)),
                     //amountTextRect
-                    new Rectangle(new Point(startX + bigBoxW, startY), new Size(smallBoxW, rectHeight)),
+                    new Rectangle(new System.Drawing.Point(startX + bigBoxW, startY), new System.Drawing.Size(smallBoxW, rectHeight)),
                     //durationTextRect
-                    new Rectangle(new Point(startX + bigBoxW + smallBoxW, startY), new Size(smallBoxW, rectHeight))
+                    new Rectangle(new System.Drawing.Point(startX + bigBoxW + smallBoxW, startY), new System.Drawing.Size(smallBoxW, rectHeight))
                 };
 
             gfx.DrawRectangles(pen, rects);
